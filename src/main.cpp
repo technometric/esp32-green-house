@@ -303,6 +303,7 @@ void WiFiEvent(WiFiEvent_t event)
   break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
     // Serial.println("WiFi lost connection");
+    String ip = "";
     connected = false;
     break;
   }
