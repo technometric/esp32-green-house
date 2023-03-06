@@ -152,6 +152,10 @@ int samples = 10;
 float adc_resolution = 4096.0;
 void loop()
 {
+  int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
+  Serial.print("Kelembaban Tanah: ");
+  Serial.println(moisturePercentage);
+
   int measurings = 0;
   for (int i = 0; i < samples; i++)
   {
@@ -159,7 +163,8 @@ void loop()
     delay(10);
   }
 
-  float voltage = 5 / adc_resolution * measurings / samples;
+  float voltage = 3.3 / adc_resolution * measurings / samples;
+  Serial.print("pH: ");
   Serial.println(ph(voltage));
   readTdsQuick();
   /*
@@ -228,13 +233,17 @@ void loop()
 void readTdsQuick()
 {
   // dallasTemp.requestTemperatures();
-  sensor::waterTemp = 25; // dallasTemp.getTempCByIndex(0);
-  float rawEc = analogRead(pin::tds_sensor) * device::aref / 4096;
+  sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
+  float rawEc = analogRead(pin::tds_sensor) * device::aref / 4096.0;
+  Serial.print("rawEC: ");
+  Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
   sensor::ec = (rawEc / tempCoefficient) * sensor::ecCalibration;
   sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec * 857.39 * sensor::ec) * 0.5;
   // tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5;
+  Serial.print("EC: ");
   Serial.println(sensor::ec);
+  Serial.print("TDS: ");
   Serial.println(sensor::tds);
 }
 
