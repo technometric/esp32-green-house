@@ -241,6 +241,18 @@ void loop()
       stringComplete = true;
     }
   }
+
+  while (Serial.available())
+  {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // Serial.print(inChar);
+    inputString += inChar;
+    if (inChar == '\r')
+    {
+      stringComplete = true;
+    }
+  }
   delay(1000);
 }
 
