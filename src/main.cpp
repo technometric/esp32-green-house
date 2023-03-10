@@ -708,6 +708,7 @@ void pharseJsonSerialIn(String jsonStr)
   String cmd = root["cmd"];
   String dev = root["device_id"];
   StringToCharArray(dev, devId);
+  StringToCharArray(dev, device_id);
 
   if (cmd.equals("setConfig"))
   {
