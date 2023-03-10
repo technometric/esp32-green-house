@@ -409,38 +409,63 @@ void EEPROM_default()
   pswd = "87880138";
   eeAddr = 78; // sizeof(ssid);
   EEPROM.writeString(eeAddr, pswd);
-  EEPROM.commit();
 
   eeAddr = 512;
   EEPROM.writeString(eeAddr, param_timer::timer1_on);
-  EEPROM.commit();
 
   eeAddr = 520;
   EEPROM.writeString(eeAddr, param_timer::timer2_on);
-  EEPROM.commit();
 
   eeAddr = 528;
   EEPROM.writeString(eeAddr, param_timer::timer3_on);
-  EEPROM.commit();
 
   eeAddr = 536;
   EEPROM.writeString(eeAddr, param_timer::timer4_on);
-  EEPROM.commit();
 
   eeAddr = 554;
   EEPROM.writeString(eeAddr, param_timer::timer1_off);
-  EEPROM.commit();
 
   eeAddr = 562;
   EEPROM.writeString(eeAddr, param_timer::timer2_off);
-  EEPROM.commit();
 
   eeAddr = 570;
   EEPROM.writeString(eeAddr, param_timer::timer3_off);
-  EEPROM.commit();
 
   eeAddr = 578;
   EEPROM.writeString(eeAddr, param_timer::timer4_off);
+
+  eeAddr = 586;
+  EEPROM.writeInt(eeAddr, param_limit::timer1_en);
+
+  eeAddr = 588;
+  EEPROM.writeInt(eeAddr, param_limit::timer2_en);
+
+  eeAddr = 590;
+  EEPROM.writeInt(eeAddr, param_limit::timer3_en);
+
+  eeAddr = 592;
+  EEPROM.writeInt(eeAddr, param_limit::timer4_en);
+
+  eeAddr = 594;
+  EEPROM.writeInt(eeAddr, param_limit::temp_on);
+  eeAddr = 596;
+  EEPROM.writeInt(eeAddr, param_limit::temp_off);
+  eeAddr = 598;
+  EEPROM.writeInt(eeAddr, param_limit::soil_on);
+  eeAddr = 600;
+  EEPROM.writeInt(eeAddr, param_limit::soil_off);
+  eeAddr = 602;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_on);
+  eeAddr = 604;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_off);
+  eeAddr = 606;
+  EEPROM.writeInt(eeAddr, param_limit::tds_on);
+  eeAddr = 608;
+  EEPROM.writeInt(eeAddr, param_limit::tds_off);
+  eeAddr = 610;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_on);
+  eeAddr = 612;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_off);
   EEPROM.commit();
 }
 void EEPROM_put(String dev)
@@ -461,6 +486,63 @@ void EEPROM_put(String dev)
 
   eeAddr = 78; // sizeof(ssid);
   EEPROM.writeString(eeAddr, pswd);
+
+  eeAddr = 512;
+  EEPROM.writeString(eeAddr, param_timer::timer1_on);
+
+  eeAddr = 520;
+  EEPROM.writeString(eeAddr, param_timer::timer2_on);
+
+  eeAddr = 528;
+  EEPROM.writeString(eeAddr, param_timer::timer3_on);
+
+  eeAddr = 536;
+  EEPROM.writeString(eeAddr, param_timer::timer4_on);
+
+  eeAddr = 554;
+  EEPROM.writeString(eeAddr, param_timer::timer1_off);
+
+  eeAddr = 562;
+  EEPROM.writeString(eeAddr, param_timer::timer2_off);
+
+  eeAddr = 570;
+  EEPROM.writeString(eeAddr, param_timer::timer3_off);
+
+  eeAddr = 578;
+  EEPROM.writeString(eeAddr, param_timer::timer4_off);
+
+  eeAddr = 586;
+  EEPROM.writeInt(eeAddr, param_limit::timer1_en);
+
+  eeAddr = 588;
+  EEPROM.writeInt(eeAddr, param_limit::timer2_en);
+
+  eeAddr = 590;
+  EEPROM.writeInt(eeAddr, param_limit::timer3_en);
+
+  eeAddr = 592;
+  EEPROM.writeInt(eeAddr, param_limit::timer4_en);
+
+  eeAddr = 594;
+  EEPROM.writeInt(eeAddr, param_limit::temp_on);
+  eeAddr = 596;
+  EEPROM.writeInt(eeAddr, param_limit::temp_off);
+  eeAddr = 598;
+  EEPROM.writeInt(eeAddr, param_limit::soil_on);
+  eeAddr = 600;
+  EEPROM.writeInt(eeAddr, param_limit::soil_off);
+  eeAddr = 602;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_on);
+  eeAddr = 604;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_off);
+  eeAddr = 606;
+  EEPROM.writeInt(eeAddr, param_limit::tds_on);
+  eeAddr = 608;
+  EEPROM.writeInt(eeAddr, param_limit::tds_off);
+  eeAddr = 610;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_on);
+  eeAddr = 612;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_off);
   EEPROM.commit();
 }
 
