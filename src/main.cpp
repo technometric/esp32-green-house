@@ -815,17 +815,37 @@ void pharseJsonSerialIn(String jsonStr)
 
   else if (cmd.equals("getTimerParam"))
   {
+    char tmr1_on[8];
+    char tmr2_on[8];
+    char tmr3_on[8];
+    char tmr4_on[8];
+    char tmr1_off[8];
+    char tmr2_off[8];
+    char tmr3_off[8];
+    char tmr4_off[8];
+    StringToCharArray(param_timer::timer1_on, tmr1_on);
+    StringToCharArray(param_timer::timer2_on, tmr2_on);
+    StringToCharArray(param_timer::timer3_on, tmr3_on);
+    StringToCharArray(param_timer::timer4_on, tmr4_on);
+    StringToCharArray(param_timer::timer1_off, tmr1_off);
+    StringToCharArray(param_timer::timer2_off, tmr2_off);
+    StringToCharArray(param_timer::timer3_off, tmr3_off);
+    StringToCharArray(param_timer::timer4_off, tmr4_off);
+
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
+                  "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
+                  device_id, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
   }
   else if (cmd.equals("getTimerState"))
   {
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
-                  dev, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
+                  device_id, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
   }
   else if (cmd.equals("getLimitParam"))
   {
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"temp_on\":%d,\"temp_off\":%d,\"soil_on\":%d,\"soil_off\":%d,"
                   "\"ec_on\":%.2f,\"soil_off\":%.2f,\"tds_on\":%d,\"tds_off\":%d,\"ph_on\":%.2f\"ph_off\":%.2f}\r\n",
-                  dev, param_limit::temp_on, param_limit::temp_off, param_limit::soil_on, param_limit::soil_off, param_limit::ec_on, param_limit::ec_off,
+                  device_id, param_limit::temp_on, param_limit::temp_off, param_limit::soil_on, param_limit::soil_off, param_limit::ec_on, param_limit::ec_off,
                   param_limit::tds_on, param_limit::tds_off, param_limit::ph_on, param_limit::ph_off);
   }
 
