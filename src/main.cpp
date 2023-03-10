@@ -46,6 +46,35 @@ namespace sensor
   int smpercent = 0;
 } // namespace sensor
 
+namespace param_timer
+{
+  String timer1_on = "06.00";
+  String timer2_on = "07.00";
+  String timer3_on = "08.00";
+  String timer4_on = "09.00";
+  String timer1_off = "06.10";
+  String timer2_off = "07.10";
+  String timer3_off = "08.10";
+  String timer4_off = "09.10";
+}
+
+namespace param_limit
+{
+  int timer1_on = 0, timer1_off = 0;
+  int timer2_on = 0, timer2_off = 0;
+  int timer3_on = 0, timer3_off = 0;
+  int timer4_on = 0, timer4_off = 0;
+  int timer1_en = 0;
+  int timer2_en = 0;
+  int timer3_en = 0;
+  int timer4_en = 0;
+  int temp_on = 25, temp_off = 30;
+  int soil_on = 20, soil_off = 50;
+  float ec_on = 1.0, ec_off = 2.0;
+  float tds_on = 100, tds_off = 200;
+  float ph_on = 6.0, ph_off = 7.0;
+}
+
 OneWire oneWire(pin::one_wire_bus);
 DallasTemperature dallasTemp(&oneWire);
 DHT dht(pin::dht21_sensor, DHT21);
@@ -72,10 +101,6 @@ int remote_port;
 int localport;
 String ssid;
 String pswd;
-int timer_on = 0, timer_off = 0;
-int temp_on = 0, temp_off = 0;
-int soil_on = 0, soil_off = 0;
-int ec_on = 0, ec_off = 0;
 
 int eeAddr = 0;
 char packetBuffer[512];
@@ -154,6 +179,7 @@ float ph(float voltage)
 
 int samples = 10;
 float adc_resolution = 4096.0;
+int timer_now = 0;
 void loop()
 {
   int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
@@ -231,9 +257,54 @@ void loop()
   Serial.print(now.second(), DEC);
   Serial.println();
 
-  if (timer_on)
+  if (param_limit::timer1_en == 1)
   {
+    if (param_limit::timer1_on == timer_now)
+    {
+      digitalWrite(pin::relay1, HIGH);
+    }
+    if (param_limit::timer1_off == timer_now)
+    {
+      digitalWrite(pin::relay1, LOW);
+    }
   }
+
+  if (param_limit::timer2_en == 1)
+  {
+    if (param_limit::timer2_on == timer_now)
+    {
+      digitalWrite(pin::relay1, HIGH);
+    }
+    if (param_limit::timer2_off == timer_now)
+    {
+      digitalWrite(pin::relay1, LOW);
+    }
+  }
+
+  if (param_limit::timer3_en == 1)
+  {
+    if (param_limit::timer3_on == timer_now)
+    {
+      digitalWrite(pin::relay1, HIGH);
+    }
+    if (param_limit::timer2_off == timer_now)
+    {
+      digitalWrite(pin::relay1, LOW);
+    }
+  }
+
+  if (param_limit::timer4_en == 1)
+  {
+    if (param_limit::timer4_on == timer_now)
+    {
+      digitalWrite(pin::relay1, HIGH);
+    }
+    if (param_limit::timer4_off == timer_now)
+    {
+      digitalWrite(pin::relay1, LOW);
+    }
+  }
+
   delay(1000);
 }
 
@@ -338,6 +409,38 @@ void EEPROM_default()
   pswd = "87880138";
   eeAddr = 78; // sizeof(ssid);
   EEPROM.writeString(eeAddr, pswd);
+  EEPROM.commit();
+
+  eeAddr = 512;
+  EEPROM.writeString(eeAddr, param_timer::timer1_on);
+  EEPROM.commit();
+
+  eeAddr = 520;
+  EEPROM.writeString(eeAddr, param_timer::timer2_on);
+  EEPROM.commit();
+
+  eeAddr = 528;
+  EEPROM.writeString(eeAddr, param_timer::timer3_on);
+  EEPROM.commit();
+
+  eeAddr = 536;
+  EEPROM.writeString(eeAddr, param_timer::timer4_on);
+  EEPROM.commit();
+
+  eeAddr = 554;
+  EEPROM.writeString(eeAddr, param_timer::timer1_off);
+  EEPROM.commit();
+
+  eeAddr = 562;
+  EEPROM.writeString(eeAddr, param_timer::timer2_off);
+  EEPROM.commit();
+
+  eeAddr = 570;
+  EEPROM.writeString(eeAddr, param_timer::timer3_off);
+  EEPROM.commit();
+
+  eeAddr = 578;
+  EEPROM.writeString(eeAddr, param_timer::timer4_off);
   EEPROM.commit();
 }
 void EEPROM_put(String dev)
