@@ -565,6 +565,63 @@ void EEPROM_get()
 
   eeAddr = 78; // sizeof(ssid);
   pswd = EEPROM.readString(eeAddr);
+
+  eeAddr = 512;
+  param_timer::timer1_on = EEPROM.readString(eeAddr);
+
+  eeAddr = 520;
+  param_timer::timer2_on = EEPROM.readString(eeAddr);
+
+  eeAddr = 528;
+  param_timer::timer3_on = EEPROM.readString(eeAddr);
+
+  eeAddr = 536;
+  param_timer::timer4_on = EEPROM.readString(eeAddr);
+
+  eeAddr = 554;
+  param_timer::timer1_off = EEPROM.readString(eeAddr);
+
+  eeAddr = 562;
+  param_timer::timer2_off = EEPROM.readString(eeAddr);
+
+  eeAddr = 570;
+  param_timer::timer3_off = EEPROM.readString(eeAddr);
+
+  eeAddr = 578;
+  param_timer::timer4_off = EEPROM.readString(eeAddr);
+
+  eeAddr = 586;
+  param_limit::timer1_en = EEPROM.readInt(eeAddr);
+
+  eeAddr = 588;
+  param_limit::timer2_en = EEPROM.readInt(eeAddr);
+
+  eeAddr = 590;
+  param_limit::timer3_en = EEPROM.readInt(eeAddr);
+
+  eeAddr = 592;
+  param_limit::timer4_en = EEPROM.readInt(eeAddr);
+
+  eeAddr = 594;
+  param_limit::temp_on = EEPROM.readInt(eeAddr);
+  eeAddr = 596;
+  param_limit::temp_off = EEPROM.readInt(eeAddr);
+  eeAddr = 598;
+  param_limit::soil_on = EEPROM.readInt(eeAddr);
+  eeAddr = 600;
+  param_limit::soil_off = EEPROM.readInt(eeAddr);
+  eeAddr = 602;
+  param_limit::ec_on = EEPROM.readFloat(eeAddr);
+  eeAddr = 604;
+  param_limit::ec_off = EEPROM.readFloat(eeAddr);
+  eeAddr = 606;
+  param_limit::tds_on = EEPROM.readInt(eeAddr);
+  eeAddr = 608;
+  param_limit::tds_off = EEPROM.readInt(eeAddr);
+  eeAddr = 610;
+  param_limit::ph_on = EEPROM.readFloat(eeAddr);
+  eeAddr = 612;
+  param_limit::ph_off = EEPROM.readFloat(eeAddr);
 }
 
 int EEPROM_getOutput()
