@@ -88,6 +88,7 @@ char device_id[8];
 int rdloop = 0;
 char json[128] = "\0";
 char devId[8];
+int output = 0;
 // Are we currently connected?
 boolean connected = false;
 boolean reconnect;
@@ -688,4 +689,134 @@ String IpAddress2String(const IPAddress &ipAddress)
          String(ipAddress[1]) + String(".") +
          String(ipAddress[2]) + String(".") +
          String(ipAddress[3]);
+}
+
+void pharseJsonSerialIn(String jsonStr)
+{
+  StaticJsonBuffer<200> jsonBuffer;
+  char json[128]; // = "{\"cmd\":\"setSSID\",\"device_id\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
+  StringToCharArray(jsonStr, json);
+
+  JsonObject &root = jsonBuffer.parseObject(json);
+  if (!root.success())
+  {
+    // Serial.println("parseObject() failed");
+    Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
+    SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
+    return;
+  }
+  String cmd = root["cmd"];
+  String dev = root["device_id"];
+  StringToCharArray(dev, devId);
+
+  if (cmd.equals("setConfig"))
+  {
+    ssid = root["ssid"].as<String>();
+    pswd = root["pswd"].as<String>();
+    localport = root["portIn"];
+    remote_port = root["portOut"];
+    EEPROM_put("");
+    connected = false;
+    StringToCharArray(ssid, cssid);
+    StringToCharArray(pswd, cpswd);
+    connectToWiFi(cssid, cpswd);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", dev);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", dev);
+    delay(1000);
+  }
+  else if (cmd.equals("setSSID"))
+  {
+    String dev = root["device_id"];
+
+    ssid = root["ssid"].as<String>();
+    pswd = root["pswd"].as<String>();
+    EEPROM_put("");
+    connected = false;
+    StringToCharArray(ssid, cssid);
+    StringToCharArray(pswd, cpswd);
+    connectToWiFi(cssid, cpswd);
+    Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"");
+    SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"");
+    delay(1000);
+    EEPROM_get();
+  }
+  else if (cmd.equals("setDevice"))
+  {
+    localport = root["portIn"];
+    remote_port = root["portOut"];
+    EEPROM_put(dev);
+    delay(5000);
+    EEPROM_get();
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", dev_id);
+  }
+  else if (cmd.equals("getConfig"))
+  {
+    StringToCharArray(dev_id, device_id);
+    SerialBT.printf("{\"Status\":\"getConfig\",\"device_id\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", device_id, cssid, cpswd, cip, localport, remote_port);
+    Serial.printf("{\"Status\":\"getConfig\",\"device_id\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", device_id, cssid, cpswd, cip, localport, remote_port);
+  }
+  else if (cmd.equals("getAll"))
+  {
+    int ot1 = digitalRead(pin::relay1);
+    int ot2 = digitalRead(pin::relay2);
+    int ot3 = digitalRead(pin::relay3);
+    int ot4 = digitalRead(pin::relay4);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    rdloop = 0;
+  }
+  else if (cmd.equals("rdLoop"))
+  {
+    //{"cmd":"rdLoop","device_id":"01","delay":1}
+    int dly = root["delay"];
+    rdloop = dly;
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
+  }
+  else if (cmd.equals("setRelay1"))
+  {
+    //{"cmd":"setRelay2","device_id":"A001","state":"1"}
+    int ot = (root["state"]) > 0 ? 1 : 0;
+    digitalWrite(pin::relay1, ot);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
+    output &= 0xFE;
+    output |= ot;
+    EEPROM_putOutput(output);
+  }
+  else if (cmd.equals("setRelay2"))
+  {
+    //{"cmd":"setRelay2","device_id":"01","state":"0"}
+    int ot = (root["state"]) > 0 ? 1 : 0;
+    digitalWrite(pin::relay2, ot);
+    output &= 0xFD;
+    output |= (ot << 1);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
+    EEPROM_putOutput(output);
+  }
+  else if (cmd.equals("setRelay3"))
+  {
+    //{"cmd":"setRelay3","device_id":"01","state":"0"}
+    int ot = (root["state"]) > 0 ? 1 : 0;
+    digitalWrite(pin::relay3, ot);
+    output &= 0xFB;
+    output |= (ot << 2);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
+    EEPROM_putOutput(output);
+  }
+  else if (cmd.equals("setRelay4"))
+  {
+    //{"cmd":"setRelay4","device_id":"01","state":"0"}
+    int ot = (root["state"]) > 0 ? 1 : 0;
+    digitalWrite(pin::relay4, ot);
+    output &= 0xF7;
+    output |= (ot << 3);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
+    EEPROM_putOutput(output);
+  }
+
+  else if (cmd.equals("forceReset"))
+  {
+    Serial.printf("{\"Status\":\"Device force reset\",\"device_id\":\"%s\"}\r\n", dev);
+    delay(1000);
+    ESP.restart();
+  }
 }
