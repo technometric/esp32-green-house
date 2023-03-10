@@ -740,6 +740,98 @@ void pharseJsonSerialIn(String jsonStr)
     delay(1000);
     EEPROM_get();
   }
+  else if (cmd.equals("setTimer1On"))
+  {
+    param_timer::timer1_on = root["on"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer2On"))
+  {
+    param_timer::timer2_on = root["on"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer3On"))
+  {
+    param_timer::timer3_on = root["on"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer4On"))
+  {
+    param_timer::timer4_on = root["on"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer1Off"))
+  {
+    param_timer::timer1_off = root["off"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer2Off"))
+  {
+    param_timer::timer2_off = root["off"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer3Off"))
+  {
+    param_timer::timer3_off = root["off"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimer4Off"))
+  {
+    param_timer::timer4_off = root["off"].as<String>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setTimerEnable"))
+  {
+    param_limit::timer1_en = root["timer1_en"];
+    param_limit::timer2_en = root["timer2_en"];
+    param_limit::timer3_en = root["timer3_en"];
+    param_limit::timer4_en = root["timer4_en"];
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setParamLimit"))
+  {
+    param_limit::temp_on = root["temp_on"];
+    param_limit::temp_off = root["temp_off"];
+    param_limit::soil_on = root["soil_on"];
+    param_limit::soil_off = root["soil_off"];
+    param_limit::ec_on = root["ec_on"].as<float>();
+    param_limit::ec_off = root["ec_off"].as<float>();
+    param_limit::tds_on = root["tds_on"];
+    param_limit::tds_off = root["tds_off"];
+    param_limit::ph_on = root["ph_on"].as<float>();
+    param_limit::ph_off = root["ph_off"].as<float>();
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    delay(1000);
+  }
   else if (cmd.equals("setDevice"))
   {
     localport = root["portIn"];
