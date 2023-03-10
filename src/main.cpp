@@ -72,6 +72,10 @@ int remote_port;
 int localport;
 String ssid;
 String pswd;
+int timer_on = 0, timer_off = 0;
+int temp_on = 0, temp_off = 0;
+int soil_on = 0, soil_off = 0;
+int ec_on = 0, ec_off = 0;
 
 int eeAddr = 0;
 char packetBuffer[512];
@@ -227,6 +231,9 @@ void loop()
   Serial.print(now.second(), DEC);
   Serial.println();
 
+  if (timer_on)
+  {
+  }
   delay(1000);
 }
 
