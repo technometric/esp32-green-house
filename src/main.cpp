@@ -306,6 +306,33 @@ void loop()
     }
   }
 
+  if (t >= param_limit::temp_on)
+  {
+    digitalWrite(pin::relay2, HIGH);
+  }
+  if (t <= param_limit::temp_off)
+  {
+    digitalWrite(pin::relay2, LOW);
+  }
+
+  if (moisturePercentage == param_limit::soil_on)
+  {
+    digitalWrite(pin::relay3, HIGH);
+  }
+  if (moisturePercentage == param_limit::soil_off)
+  {
+    digitalWrite(pin::relay3, LOW);
+  }
+
+  if (sensor::ec == param_limit::ec_on)
+  {
+    digitalWrite(pin::relay4, HIGH);
+  }
+  if (sensor::ec == param_limit::ec_off)
+  {
+    digitalWrite(pin::relay4, LOW);
+  }
+
   delay(1000);
 }
 
