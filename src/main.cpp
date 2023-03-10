@@ -813,6 +813,22 @@ void pharseJsonSerialIn(String jsonStr)
     EEPROM_putOutput(output);
   }
 
+  else if (cmd.equals("getTimerParam"))
+  {
+  }
+  else if (cmd.equals("getTimerState"))
+  {
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
+                  dev, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
+  }
+  else if (cmd.equals("getLimitParam"))
+  {
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"temp_on\":%d,\"temp_off\":%d,\"soil_on\":%d,\"soil_off\":%d,"
+                  "\"ec_on\":%.2f,\"soil_off\":%.2f,\"tds_on\":%d,\"tds_off\":%d,\"ph_on\":%.2f\"ph_off\":%.2f}\r\n",
+                  dev, param_limit::temp_on, param_limit::temp_off, param_limit::soil_on, param_limit::soil_off, param_limit::ec_on, param_limit::ec_off,
+                  param_limit::tds_on, param_limit::tds_off, param_limit::ph_on, param_limit::ph_off);
+  }
+
   else if (cmd.equals("forceReset"))
   {
     Serial.printf("{\"Status\":\"Device force reset\",\"device_id\":\"%s\"}\r\n", dev);
