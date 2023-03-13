@@ -885,6 +885,28 @@ void pharseJsonSerialIn(String jsonStr)
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
     rdloop = 0;
   }
+  else if (cmd.equals("setRtc"))
+  {
+    DS3231 clock;
+    byte year = root["tahun"] % 2000;
+    byte month = root["bulan"];
+    byte date = root["hari"];
+    byte hour = root["jam"];
+    byte minute = root["menit"];
+    byte second = root["detik"];
+    clock.setYear(year);
+    clock.setMonth(month);
+    clock.setDate(date);
+    clock.setHour(hour);
+    clock.setMinute(minute);
+    clock.setSecond(second);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
+  }
+  else if (cmd.equals("getRtc"))
+  {
+    DateTime now = rtc.now();
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"tanggal\":%d-%d-%d,\"jam\":%d:%d:%d}\r\n", dev, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
+  }
   else if (cmd.equals("rdLoop"))
   {
     //{"cmd":"rdLoop","device_id":"01","delay":1}
