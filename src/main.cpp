@@ -48,14 +48,14 @@ namespace sensor
 
 namespace param_timer
 {
-  String timer1_on = "06.00";
-  String timer2_on = "07.00";
-  String timer3_on = "08.00";
-  String timer4_on = "09.00";
-  String timer1_off = "06.10";
-  String timer2_off = "07.10";
-  String timer3_off = "08.10";
-  String timer4_off = "09.10";
+  int timer1_on = 0;
+  int timer2_on = 0;
+  int timer3_on = 0;
+  int timer4_on = 0;
+  int timer1_off = 0;
+  int timer2_off = 0;
+  int timer3_off = 0;
+  int timer4_off = 0;
 }
 
 namespace param_limit
@@ -440,28 +440,28 @@ void EEPROM_default()
   EEPROM.writeString(eeAddr, pswd);
 
   eeAddr = 512;
-  EEPROM.writeString(eeAddr, param_timer::timer1_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer1_on);
 
   eeAddr = 520;
-  EEPROM.writeString(eeAddr, param_timer::timer2_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer2_on);
 
   eeAddr = 528;
-  EEPROM.writeString(eeAddr, param_timer::timer3_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer3_on);
 
   eeAddr = 536;
-  EEPROM.writeString(eeAddr, param_timer::timer4_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer4_on);
 
   eeAddr = 554;
-  EEPROM.writeString(eeAddr, param_timer::timer1_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer1_off);
 
   eeAddr = 562;
-  EEPROM.writeString(eeAddr, param_timer::timer2_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer2_off);
 
   eeAddr = 570;
-  EEPROM.writeString(eeAddr, param_timer::timer3_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer3_off);
 
   eeAddr = 578;
-  EEPROM.writeString(eeAddr, param_timer::timer4_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer4_off);
 
   eeAddr = 586;
   EEPROM.writeInt(eeAddr, param_limit::timer1_en);
@@ -517,28 +517,28 @@ void EEPROM_put(String dev)
   EEPROM.writeString(eeAddr, pswd);
 
   eeAddr = 512;
-  EEPROM.writeString(eeAddr, param_timer::timer1_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer1_on);
 
   eeAddr = 520;
-  EEPROM.writeString(eeAddr, param_timer::timer2_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer2_on);
 
   eeAddr = 528;
-  EEPROM.writeString(eeAddr, param_timer::timer3_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer3_on);
 
   eeAddr = 536;
-  EEPROM.writeString(eeAddr, param_timer::timer4_on);
+  EEPROM.writeInt(eeAddr, param_timer::timer4_on);
 
   eeAddr = 554;
-  EEPROM.writeString(eeAddr, param_timer::timer1_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer1_off);
 
   eeAddr = 562;
-  EEPROM.writeString(eeAddr, param_timer::timer2_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer2_off);
 
   eeAddr = 570;
-  EEPROM.writeString(eeAddr, param_timer::timer3_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer3_off);
 
   eeAddr = 578;
-  EEPROM.writeString(eeAddr, param_timer::timer4_off);
+  EEPROM.writeInt(eeAddr, param_timer::timer4_off);
 
   eeAddr = 586;
   EEPROM.writeInt(eeAddr, param_limit::timer1_en);
@@ -596,28 +596,28 @@ void EEPROM_get()
   pswd = EEPROM.readString(eeAddr);
 
   eeAddr = 512;
-  param_timer::timer1_on = EEPROM.readString(eeAddr);
+  param_timer::timer1_on = EEPROM.readInt(eeAddr);
 
   eeAddr = 520;
-  param_timer::timer2_on = EEPROM.readString(eeAddr);
+  param_timer::timer2_on = EEPROM.readInt(eeAddr);
 
   eeAddr = 528;
-  param_timer::timer3_on = EEPROM.readString(eeAddr);
+  param_timer::timer3_on = EEPROM.readInt(eeAddr);
 
   eeAddr = 536;
-  param_timer::timer4_on = EEPROM.readString(eeAddr);
+  param_timer::timer4_on = EEPROM.readInt(eeAddr);
 
   eeAddr = 554;
-  param_timer::timer1_off = EEPROM.readString(eeAddr);
+  param_timer::timer1_off = EEPROM.readInt(eeAddr);
 
   eeAddr = 562;
-  param_timer::timer2_off = EEPROM.readString(eeAddr);
+  param_timer::timer2_off = EEPROM.readInt(eeAddr);
 
   eeAddr = 570;
-  param_timer::timer3_off = EEPROM.readString(eeAddr);
+  param_timer::timer3_off = EEPROM.readInt(eeAddr);
 
   eeAddr = 578;
-  param_timer::timer4_off = EEPROM.readString(eeAddr);
+  param_timer::timer4_off = EEPROM.readInt(eeAddr);
 
   eeAddr = 586;
   param_limit::timer1_en = EEPROM.readInt(eeAddr);
@@ -771,7 +771,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer1On"))
   {
-    param_timer::timer1_on = root["on"].as<String>();
+    param_timer::timer1_on = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -779,7 +779,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer2On"))
   {
-    param_timer::timer2_on = root["on"].as<String>();
+    param_timer::timer2_on = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -787,7 +787,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer3On"))
   {
-    param_timer::timer3_on = root["on"].as<String>();
+    param_timer::timer3_on = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -795,7 +795,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer4On"))
   {
-    param_timer::timer4_on = root["on"].as<String>();
+    param_timer::timer4_on = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -803,7 +803,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer1Off"))
   {
-    param_timer::timer1_off = root["off"].as<String>();
+    param_timer::timer1_off = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -811,7 +811,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer2Off"))
   {
-    param_timer::timer2_off = root["off"].as<String>();
+    param_timer::timer2_off = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -819,7 +819,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer3Off"))
   {
-    param_timer::timer3_off = root["off"].as<String>();
+    param_timer::timer3_off = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -827,7 +827,7 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer4Off"))
   {
-    param_timer::timer4_off = root["off"].as<String>();
+    param_timer::timer4_off = (root["jam"] * 60) + root["menit"];
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -966,14 +966,22 @@ void pharseJsonSerialIn(String jsonStr)
     char tmr2_off[8];
     char tmr3_off[8];
     char tmr4_off[8];
-    StringToCharArray(param_timer::timer1_on, tmr1_on);
+    sprintf(tmr1_on, "%02d:%02d", param_timer::timer1_on / 60, param_timer::timer1_on % 60);
+    sprintf(tmr2_on, "%02d:%02d", param_timer::timer2_on / 60, param_timer::timer2_on % 60);
+    sprintf(tmr3_on, "%02d:%02d", param_timer::timer3_on / 60, param_timer::timer3_on % 60);
+    sprintf(tmr4_on, "%02d:%02d", param_timer::timer4_on / 60, param_timer::timer4_on % 60);
+    sprintf(tmr1_off, "%02d:%02d", param_timer::timer1_off / 60, param_timer::timer1_off % 60);
+    sprintf(tmr2_off, "%02d:%02d", param_timer::timer2_off / 60, param_timer::timer2_off % 60);
+    sprintf(tmr3_off, "%02d:%02d", param_timer::timer3_off / 60, param_timer::timer3_off % 60);
+    sprintf(tmr4_off, "%02d:%02d", param_timer::timer4_off / 60, param_timer::timer4_off % 60);
+    /*StringToCharArray(param_timer::timer1_on, tmr1_on);
     StringToCharArray(param_timer::timer2_on, tmr2_on);
     StringToCharArray(param_timer::timer3_on, tmr3_on);
     StringToCharArray(param_timer::timer4_on, tmr4_on);
     StringToCharArray(param_timer::timer1_off, tmr1_off);
     StringToCharArray(param_timer::timer2_off, tmr2_off);
     StringToCharArray(param_timer::timer3_off, tmr3_off);
-    StringToCharArray(param_timer::timer4_off, tmr4_off);
+    StringToCharArray(param_timer::timer4_off, tmr4_off);*/
 
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
                   "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
