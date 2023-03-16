@@ -258,6 +258,7 @@ void loop()
   Serial.print(now.second(), DEC);
   Serial.println();
 
+  timer_now = (now.hour() * 60) + now.minute();
   if (param_limit::timer1_en == 1)
   {
     if (param_limit::timer1_on == timer_now)
