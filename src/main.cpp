@@ -60,10 +60,10 @@ namespace param_timer
 
 namespace param_limit
 {
-  int timer1_on = 0, timer1_off = 0;
+  /*int timer1_on = 0, timer1_off = 0;
   int timer2_on = 0, timer2_off = 0;
   int timer3_on = 0, timer3_off = 0;
-  int timer4_on = 0, timer4_off = 0;
+  int timer4_on = 0, timer4_off = 0;*/
   int timer1_en = 0;
   int timer2_en = 0;
   int timer3_en = 0;
@@ -261,11 +261,11 @@ void loop()
   timer_now = (now.hour() * 60) + now.minute();
   if (param_limit::timer1_en == 1)
   {
-    if (param_limit::timer1_on == timer_now)
+    if (param_timer::timer1_on == timer_now)
     {
       digitalWrite(pin::relay1, HIGH);
     }
-    if (param_limit::timer1_off == timer_now)
+    if (param_timer::timer1_off == timer_now)
     {
       digitalWrite(pin::relay1, LOW);
     }
@@ -273,11 +273,11 @@ void loop()
 
   if (param_limit::timer2_en == 1)
   {
-    if (param_limit::timer2_on == timer_now)
+    if (param_timer::timer2_on == timer_now)
     {
       digitalWrite(pin::relay1, HIGH);
     }
-    if (param_limit::timer2_off == timer_now)
+    if (param_timer::timer2_off == timer_now)
     {
       digitalWrite(pin::relay1, LOW);
     }
@@ -285,11 +285,11 @@ void loop()
 
   if (param_limit::timer3_en == 1)
   {
-    if (param_limit::timer3_on == timer_now)
+    if (param_timer::timer3_on == timer_now)
     {
       digitalWrite(pin::relay1, HIGH);
     }
-    if (param_limit::timer2_off == timer_now)
+    if (param_timer::timer2_off == timer_now)
     {
       digitalWrite(pin::relay1, LOW);
     }
@@ -297,11 +297,11 @@ void loop()
 
   if (param_limit::timer4_en == 1)
   {
-    if (param_limit::timer4_on == timer_now)
+    if (param_timer::timer4_on == timer_now)
     {
       digitalWrite(pin::relay1, HIGH);
     }
-    if (param_limit::timer4_off == timer_now)
+    if (param_timer::timer4_off == timer_now)
     {
       digitalWrite(pin::relay1, LOW);
     }
@@ -771,7 +771,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer1On"))
   {
-    param_timer::timer1_on = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer1_on = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -779,7 +781,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer2On"))
   {
-    param_timer::timer2_on = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer2_on = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -787,7 +791,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer3On"))
   {
-    param_timer::timer3_on = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer3_on = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -795,7 +801,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer4On"))
   {
-    param_timer::timer4_on = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer4_on = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -803,7 +811,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer1Off"))
   {
-    param_timer::timer1_off = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer1_off = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -811,7 +821,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer2Off"))
   {
-    param_timer::timer2_off = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer2_off = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -819,7 +831,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer3Off"))
   {
-    param_timer::timer3_off = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer3_off = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -827,7 +841,9 @@ void pharseJsonSerialIn(String jsonStr)
   }
   else if (cmd.equals("setTimer4Off"))
   {
-    param_timer::timer4_off = (root["jam"] * 60) + root["menit"];
+    int jam = root["jam"];
+    int menit = root["menit"];
+    param_timer::timer4_off = (jam * 60) + menit;
     EEPROM_put("");
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
@@ -889,7 +905,8 @@ void pharseJsonSerialIn(String jsonStr)
   else if (cmd.equals("setRtc"))
   {
     DS3231 clock;
-    byte year = root["tahun"] % 2000;
+    int tahun = root["tahun"];
+    byte year =  tahun % 2000;
     byte month = root["bulan"];
     byte date = root["hari"];
     byte hour = root["jam"];
