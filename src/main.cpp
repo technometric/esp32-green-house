@@ -334,6 +334,15 @@ void loop()
     digitalWrite(pin::relay4, LOW);
   }
 
+  if (rdloop > 0)
+  {
+    int ot1 = digitalRead(pin::relay1);
+    int ot2 = digitalRead(pin::relay2);
+    int ot3 = digitalRead(pin::relay3);
+    int ot4 = digitalRead(pin::relay4);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+  }
   delay(1000);
 }
 
