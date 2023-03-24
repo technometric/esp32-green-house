@@ -151,7 +151,7 @@ void setup()
 
   StringToCharArray(ssid, cssid);
   StringToCharArray(pswd, cpswd);
-  connectToWiFi(cssid, cpswd);
+  //connectToWiFi(cssid, cpswd);
 
   pinMode(pin::led_builtin, OUTPUT);
   pinMode(pin::relay1, OUTPUT);
@@ -207,7 +207,7 @@ void loop()
   int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
   Serial.print("Kelembaban Tanah: ");
   Serial.println(moisturePercentage);
-  */
+  
   int measurings = 0;
   for (int i = 0; i < samples; i++)
   {
@@ -215,11 +215,14 @@ void loop()
     delay(20);
   }
 
-  float voltage = 3.3 / adc_resolution * measurings / samples;
+  float voltage = (3.3 / adc_resolution) * (measurings / samples);
+  */
+  int phValue = analogRead(pin::ph_sensor);
+  float voltage = (3.3 / adc_resolution) * phValue;
   Serial.print("pH: ");
-  Serial.println(ph(voltage));
+  Serial.println((phValue));
   // readTdsQuick();
-
+  /*
   float h = dht.readHumidity();
   // Read temperature as Celsius (the default)
   float t = dht.readTemperature();
@@ -236,7 +239,7 @@ void loop()
   Serial.print(F("%  Temperature: "));
   Serial.print(t);
   Serial.println(F("°C "));
-  /*
+  
   DateTime now = rtc.now();
 
   Serial.print(now.year(), DEC);
@@ -338,7 +341,7 @@ void loop()
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
   }
   */
-  delay(5000);
+  delay(500);
 }
 
 void readTdsQuick()
