@@ -81,6 +81,8 @@ DHT dht(pin::dht21_sensor, DHT21);
 RTClib rtc;
 DS3231 t;
 
+float pH7 = 1.65;
+float pH4 = 0;
 char cssid[50]; // = "Technometric2";
 char cpswd[50]; // = "12345678";
 char cip[30];   // = "192.168.0.255";
@@ -176,11 +178,12 @@ void setup()
 }
 float ph(float voltage)
 {
-  return 7 + ((1.65 - voltage) / 0.18);
+  float ph_step = (pH4 - pH7) / 3;
+  return 7.00 + ((1.65 - voltage) / ph_step);
 }
 
 int samples = 10;
-float adc_resolution = 4096.0;
+float adc_resolution = 4095.0;
 int timer_now = 0;
 void loop()
 {
@@ -215,34 +218,7 @@ void loop()
   Serial.print("pH: ");
   Serial.println(ph(voltage));
   readTdsQuick();
-  /*
-  dht.read();
-  // проверяем состояние данных
-  switch(dht.getState()) {
-    // всё OK
-    case DHT_OK:
-      // выводим показания влажности и температуры
-      Serial.print("Temperature = ");
-      Serial.print(dht.getTemperatureC());
-      Serial.println(" C \t");
-      Serial.print("Humidity = ");
-      Serial.print(dht.getHumidity());
-      Serial.println(" %");
-      break;
-    // ошибка контрольной суммы
-    case DHT_ERROR_CHECKSUM:
-      Serial.println("Checksum error");
-      break;
-    // превышение времени ожидания
-    case DHT_ERROR_TIMEOUT:
-      Serial.println("Time out error");
-      break;
-    // данных нет, датчик не реагирует или отсутствует
-    case DHT_ERROR_NO_REPLY:
-      Serial.println("Sensor not connected");
-      break;
-  }
-*/
+
   float h = dht.readHumidity();
   // Read temperature as Celsius (the default)
   float t = dht.readTemperature();
@@ -367,7 +343,7 @@ void readTdsQuick()
 {
   // dallasTemp.requestTemperatures();
   sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
-  float rawEc = (analogRead(pin::tds_sensor) * device::aref) / 4095.0;
+  float rawEc = (analogRead(pin::tds_sensor) * device::aref) / adc_resolution;
   Serial.print("rawEC: ");
   Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
