@@ -151,6 +151,7 @@ void setup()
   StringToCharArray(pswd, cpswd);
   connectToWiFi(cssid, cpswd);
 
+  pinMode(pin::led_builtin, OUTPUT);
   pinMode(pin::relay1, OUTPUT);
   pinMode(pin::relay2, OUTPUT);
   pinMode(pin::relay3, OUTPUT);
@@ -183,6 +184,22 @@ float adc_resolution = 4096.0;
 int timer_now = 0;
 void loop()
 {
+
+  if (!connected)
+  {
+    if (reconnect)
+    {
+      reconnect = false;
+      connectToWiFi(cssid, cpswd);
+    }
+    digitalWrite(pin::led_builtin, HIGH);
+    delay(100);
+    digitalWrite(pin::led_builtin, LOW);
+    delay(100);
+  }
+  else
+    digitalWrite(pin::led_builtin, HIGH);
+
   int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
   Serial.print("Kelembaban Tanah: ");
   Serial.println(moisturePercentage);
@@ -350,18 +367,50 @@ void readTdsQuick()
 {
   // dallasTemp.requestTemperatures();
   sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
-  float rawEc = analogRead(pin::tds_sensor) * device::aref / 4096.0;
+  float rawEc = (analogRead(pin::tds_sensor) * device::aref) / 4095.0;
   Serial.print("rawEC: ");
   Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
   sensor::ec = (rawEc / tempCoefficient) * sensor::ecCalibration;
-  sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec * 857.39 * sensor::ec) * 0.5;
+  sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5;
   // tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5;
   Serial.print("EC: ");
   Serial.println(sensor::ec);
   Serial.print("TDS: ");
   Serial.println(sensor::tds);
 }
+
+/*
+void readTdsQuick() {
+  dallasTemperature.requestTemperatures();
+  sensor::waterTemp = dallasTemperature.getTempCByIndex(0);
+  float rawEc = analogRead(pin::tds_sensor) * device::aref / 1024.0; // read the analog value more stable by the median filtering algorithm, and convert to voltage value
+  float temperatureCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0); // temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
+  sensor::ec = (rawEc / temperatureCoefficient) * sensor::ecCalibration; // temperature and calibration compensation
+  sensor::tds = (133.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5; //convert voltage value to tds value
+  Serial.print(F("TDS:")); Serial.println(sensor::tds);
+  Serial.print(F("EC:")); Serial.println(sensor::ec, 2);
+  Serial.print(F("Temperature:")); Serial.println(sensor::waterTemp,2);
+
+ display.clearDisplay();
+  display.setCursor(10,0);
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+ display.print("TDS:"+String(sensor::tds));
+    display.setCursor(10,20);
+  display.setTextSize(2);
+ display.print("EC:"+String(sensor::ec, 2));
+   display.setCursor(10,45);
+  display.setTextSize(2);
+ display.print("T:"+String(sensor::waterTemp,2));
+  display.display();
+    Blynk.virtualWrite(V0,(sensor::tds));
+
+   Blynk.virtualWrite(V1,(sensor::ec));
+
+     Blynk.virtualWrite(V2,(sensor::waterTemp));
+}
+*/
 
 void getSoilPercent()
 {
@@ -915,7 +964,7 @@ void pharseJsonSerialIn(String jsonStr)
   {
     DS3231 clock;
     int tahun = root["tahun"];
-    byte year =  tahun % 2000;
+    byte year = tahun % 2000;
     byte month = root["bulan"];
     byte date = root["hari"];
     byte hour = root["jam"];
