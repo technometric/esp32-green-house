@@ -203,21 +203,22 @@ void loop()
   else
     digitalWrite(pin::led_builtin, HIGH);
 
+  /*
   int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
   Serial.print("Kelembaban Tanah: ");
   Serial.println(moisturePercentage);
-
+  */
   int measurings = 0;
   for (int i = 0; i < samples; i++)
   {
     measurings += analogRead(pin::ph_sensor);
-    delay(10);
+    delay(20);
   }
 
   float voltage = 3.3 / adc_resolution * measurings / samples;
   Serial.print("pH: ");
   Serial.println(ph(voltage));
-  readTdsQuick();
+  // readTdsQuick();
 
   float h = dht.readHumidity();
   // Read temperature as Celsius (the default)
@@ -235,7 +236,7 @@ void loop()
   Serial.print(F("%  Temperature: "));
   Serial.print(t);
   Serial.println(F("°C "));
-
+  /*
   DateTime now = rtc.now();
 
   Serial.print(now.year(), DEC);
@@ -336,7 +337,8 @@ void loop()
     SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
   }
-  delay(1000);
+  */
+  delay(5000);
 }
 
 void readTdsQuick()
@@ -763,8 +765,8 @@ void pharseJsonSerialIn(String jsonStr)
   if (!root.success())
   {
     // Serial.println("parseObject() failed");
-    Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
-    SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
+    Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}");
+    SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}");
     return;
   }
   String cmd = root["cmd"];
@@ -783,8 +785,8 @@ void pharseJsonSerialIn(String jsonStr)
     StringToCharArray(ssid, cssid);
     StringToCharArray(pswd, cpswd);
     connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", dev);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", dev);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev);
     delay(1000);
   }
   else if (cmd.equals("setSSID"))
@@ -798,8 +800,8 @@ void pharseJsonSerialIn(String jsonStr)
     StringToCharArray(ssid, cssid);
     StringToCharArray(pswd, cpswd);
     connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"");
-    SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"");
+    Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
+    SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
     delay(1000);
     EEPROM_get();
   }
@@ -809,8 +811,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer1_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n}", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer2On"))
@@ -819,8 +821,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer2_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer3On"))
@@ -829,8 +831,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer3_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer4On"))
@@ -839,8 +841,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer4_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer1Off"))
@@ -849,8 +851,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer1_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer2Off"))
@@ -859,8 +861,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer2_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer3Off"))
@@ -869,8 +871,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer3_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer4Off"))
@@ -879,8 +881,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer4_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimerEnable"))
@@ -890,8 +892,8 @@ void pharseJsonSerialIn(String jsonStr)
     param_limit::timer3_en = root["timer3_en"];
     param_limit::timer4_en = root["timer4_en"];
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setParamLimit"))
@@ -907,8 +909,8 @@ void pharseJsonSerialIn(String jsonStr)
     param_limit::ph_on = root["ph_on"].as<float>();
     param_limit::ph_off = root["ph_off"].as<float>();
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setDevice"))
@@ -932,8 +934,8 @@ void pharseJsonSerialIn(String jsonStr)
     int ot2 = digitalRead(pin::relay2);
     int ot3 = digitalRead(pin::relay3);
     int ot4 = digitalRead(pin::relay4);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}\n", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}\n", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
     rdloop = 0;
   }
   else if (cmd.equals("setRtc"))
