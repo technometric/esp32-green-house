@@ -19,8 +19,8 @@ BluetoothSerial SerialBT;
 
 namespace pin
 {
-  const byte tds_sensor = 34;
-  const byte ph_sensor = 35;
+  const byte tds_sensor = 35;
+  const byte ph_sensor = 34;
   const byte soil_sensor = 32;
   const byte dht21_sensor = 19;
   const byte one_wire_bus = 17;
@@ -39,11 +39,14 @@ namespace device
 namespace sensor
 {
   float ec = 0;
-  unsigned int tds = 0;
+  int tds = 0;
   float waterTemp = 0;
   float ecCalibration = 1;
   int smvalue = 0;
   int smpercent = 0;
+  float suhu_udara = 0;
+  float kelembaban = 0;
+  float ph = 0;
 } // namespace sensor
 
 namespace param_timer
@@ -60,10 +63,7 @@ namespace param_timer
 
 namespace param_limit
 {
-  /*int timer1_on = 0, timer1_off = 0;
-  int timer2_on = 0, timer2_off = 0;
-  int timer3_on = 0, timer3_off = 0;
-  int timer4_on = 0, timer4_off = 0;*/
+  int output_en = 0;
   int timer1_en = 0;
   int timer2_en = 0;
   int timer3_en = 0;
@@ -90,6 +90,7 @@ char device_id[8];
 int rdloop = 0;
 char json[128] = "\0";
 char devId[8];
+int ot1, ot2, ot3, ot4;
 int output = 0;
 // Are we currently connected?
 boolean connected = false;
@@ -178,13 +179,14 @@ void setup()
 }
 float ph(float voltage)
 {
-  float ph_step = (pH4 - pH7) / 3;
-  return 7.00 + ((1.65 - voltage) / ph_step);
+  // float ph_step = (pH4 - pH7) / 3;
+  return -5.70 * voltage + 21.34;
 }
 
 int samples = 10;
 float adc_resolution = 4095.0;
 int timer_now = 0;
+int dly = 0;
 void loop()
 {
 
@@ -203,39 +205,42 @@ void loop()
   else
     digitalWrite(pin::led_builtin, HIGH);
 
-  int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
-  Serial.print("Kelembaban Tanah: ");
-  Serial.println(moisturePercentage);
+  getSoilPercent();
+  // int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
+  // sensor::smpercent = map(analogRead(pin::soil_sensor), 0, 4095, 100, 0);
+  // Serial.print("Kelembaban Tanah: ");
+  // Serial.println(moisturePercentage);
 
   int measurings = 0;
   for (int i = 0; i < samples; i++)
   {
     measurings += analogRead(pin::ph_sensor);
-    delay(10);
+    delay(20);
   }
 
-  float voltage = 3.3 / adc_resolution * measurings / samples;
-  Serial.print("pH: ");
-  Serial.println(ph(voltage));
+  float voltage = (3.3 / adc_resolution) * (measurings / samples);
+  sensor::ph = ph(voltage);
+  // Serial.print("pH: ");
+  // Serial.println(ph(voltage));
   readTdsQuick();
 
-  float h = dht.readHumidity();
+  sensor::kelembaban = dht.readHumidity();
   // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
+  sensor::suhu_udara = dht.readTemperature();
 
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t))
+  if (isnan(sensor::kelembaban) || isnan(sensor::suhu_udara))
   {
     Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
-
+  /*
   Serial.print(F("Humidity: "));
   Serial.print(h);
   Serial.print(F("%  Temperature: "));
   Serial.print(t);
   Serial.println(F("°C "));
-
+  */
   DateTime now = rtc.now();
 
   Serial.print(now.year(), DEC);
@@ -252,90 +257,108 @@ void loop()
   Serial.println();
 
   timer_now = (now.hour() * 60) + now.minute();
-  if (param_limit::timer1_en == 1)
+  if (param_limit::output_en == 1)
   {
-    if (param_timer::timer1_on == timer_now)
+    if (param_limit::timer1_en == 1)
     {
-      digitalWrite(pin::relay1, HIGH);
+      if (param_timer::timer1_on == timer_now)
+      {
+        digitalWrite(pin::relay1, HIGH);
+      }
+      if (param_timer::timer1_off == timer_now)
+      {
+        digitalWrite(pin::relay1, LOW);
+      }
     }
-    if (param_timer::timer1_off == timer_now)
-    {
-      digitalWrite(pin::relay1, LOW);
-    }
-  }
 
-  if (param_limit::timer2_en == 1)
-  {
-    if (param_timer::timer2_on == timer_now)
+    if (param_limit::timer2_en == 1)
     {
-      digitalWrite(pin::relay1, HIGH);
+      if (param_timer::timer2_on == timer_now)
+      {
+        digitalWrite(pin::relay1, HIGH);
+      }
+      if (param_timer::timer2_off == timer_now)
+      {
+        digitalWrite(pin::relay1, LOW);
+      }
     }
-    if (param_timer::timer2_off == timer_now)
-    {
-      digitalWrite(pin::relay1, LOW);
-    }
-  }
 
-  if (param_limit::timer3_en == 1)
-  {
-    if (param_timer::timer3_on == timer_now)
+    if (param_limit::timer3_en == 1)
     {
-      digitalWrite(pin::relay1, HIGH);
+      if (param_timer::timer3_on == timer_now)
+      {
+        digitalWrite(pin::relay1, HIGH);
+      }
+      if (param_timer::timer2_off == timer_now)
+      {
+        digitalWrite(pin::relay1, LOW);
+      }
     }
-    if (param_timer::timer2_off == timer_now)
-    {
-      digitalWrite(pin::relay1, LOW);
-    }
-  }
 
-  if (param_limit::timer4_en == 1)
-  {
-    if (param_timer::timer4_on == timer_now)
+    if (param_limit::timer4_en == 1)
     {
-      digitalWrite(pin::relay1, HIGH);
+      if (param_timer::timer4_on == timer_now)
+      {
+        digitalWrite(pin::relay1, HIGH);
+      }
+      if (param_timer::timer4_off == timer_now)
+      {
+        digitalWrite(pin::relay1, LOW);
+      }
     }
-    if (param_timer::timer4_off == timer_now)
-    {
-      digitalWrite(pin::relay1, LOW);
-    }
-  }
 
-  if (t >= param_limit::temp_on)
-  {
-    digitalWrite(pin::relay2, HIGH);
+    if (sensor::suhu_udara >= param_limit::temp_on)
+    {
+      digitalWrite(pin::relay2, HIGH);
+    }
+    if (sensor::suhu_udara <= param_limit::temp_off)
+    {
+      digitalWrite(pin::relay2, LOW);
+    }
+
+    if (sensor::smpercent == param_limit::soil_on)
+    {
+      digitalWrite(pin::relay3, HIGH);
+    }
+    if (sensor::smpercent == param_limit::soil_off)
+    {
+      digitalWrite(pin::relay3, LOW);
+    }
+
+    if (sensor::ec == param_limit::ec_on)
+    {
+      digitalWrite(pin::relay4, HIGH);
+    }
+    if (sensor::ec == param_limit::ec_off)
+    {
+      digitalWrite(pin::relay4, LOW);
+    }
   }
-  if (t <= param_limit::temp_off)
+  else
   {
+    digitalWrite(pin::relay1, LOW);
     digitalWrite(pin::relay2, LOW);
-  }
-
-  if (moisturePercentage == param_limit::soil_on)
-  {
-    digitalWrite(pin::relay3, HIGH);
-  }
-  if (moisturePercentage == param_limit::soil_off)
-  {
     digitalWrite(pin::relay3, LOW);
-  }
-
-  if (sensor::ec == param_limit::ec_on)
-  {
-    digitalWrite(pin::relay4, HIGH);
-  }
-  if (sensor::ec == param_limit::ec_off)
-  {
     digitalWrite(pin::relay4, LOW);
   }
 
-  if (rdloop > 0)
+  if (++dly >= rdloop)
   {
-    int ot1 = digitalRead(pin::relay1);
-    int ot2 = digitalRead(pin::relay2);
-    int ot3 = digitalRead(pin::relay3);
-    int ot4 = digitalRead(pin::relay4);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    dly = 0;
+    if (connected)
+    {
+      ot1 = digitalRead(pin::relay1);
+      ot2 = digitalRead(pin::relay2);
+      ot3 = digitalRead(pin::relay3);
+      ot4 = digitalRead(pin::relay4);
+      StringToCharArray(dev_id, devId);
+      udp.beginPacket(udp.remoteIP(), remote_port);
+      udp.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+      udp.endPacket();
+      SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+    }
   }
+  Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
   delay(1000);
 }
 
@@ -344,16 +367,16 @@ void readTdsQuick()
   // dallasTemp.requestTemperatures();
   sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
   float rawEc = (analogRead(pin::tds_sensor) * device::aref) / adc_resolution;
-  Serial.print("rawEC: ");
-  Serial.println(rawEc);
+  // Serial.print("rawEC: ");
+  // Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
   sensor::ec = (rawEc / tempCoefficient) * sensor::ecCalibration;
   sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5;
   // tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5;
-  Serial.print("EC: ");
-  Serial.println(sensor::ec);
-  Serial.print("TDS: ");
-  Serial.println(sensor::tds);
+  // Serial.print("EC: ");
+  // Serial.println(sensor::ec);
+  // Serial.print("TDS: ");
+  // Serial.println(sensor::tds);
 }
 
 /*
@@ -391,7 +414,7 @@ void readTdsQuick() {
 void getSoilPercent()
 {
   sensor::smvalue = analogRead(pin::soil_sensor);
-  sensor::smpercent = map(sensor::smvalue, 0, 1023, 100, 0);
+  sensor::smpercent = map(sensor::smvalue, 0, 4095, 100, 0);
 }
 
 void connectToWiFi(const char *ssid, const char *pwd)
@@ -529,6 +552,8 @@ void EEPROM_default()
   EEPROM.writeFloat(eeAddr, param_limit::ph_on);
   eeAddr = 612;
   EEPROM.writeFloat(eeAddr, param_limit::ph_off);
+  eeAddr = 614;
+  EEPROM.writeInt(eeAddr, param_limit::output_en);
   EEPROM.commit();
 }
 void EEPROM_put(String dev)
@@ -606,6 +631,8 @@ void EEPROM_put(String dev)
   EEPROM.writeFloat(eeAddr, param_limit::ph_on);
   eeAddr = 612;
   EEPROM.writeFloat(eeAddr, param_limit::ph_off);
+  eeAddr = 614;
+  EEPROM.writeInt(eeAddr, param_limit::output_en);
   EEPROM.commit();
 }
 
@@ -685,6 +712,8 @@ void EEPROM_get()
   param_limit::ph_on = EEPROM.readFloat(eeAddr);
   eeAddr = 612;
   param_limit::ph_off = EEPROM.readFloat(eeAddr);
+  eeAddr = 614;
+  param_limit::output_en = EEPROM.readFloat(eeAddr);
 }
 
 int EEPROM_getOutput()
@@ -763,8 +792,8 @@ void pharseJsonSerialIn(String jsonStr)
   if (!root.success())
   {
     // Serial.println("parseObject() failed");
-    Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
-    SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
+    Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
+    SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
     return;
   }
   String cmd = root["cmd"];
@@ -783,8 +812,8 @@ void pharseJsonSerialIn(String jsonStr)
     StringToCharArray(ssid, cssid);
     StringToCharArray(pswd, cpswd);
     connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", dev);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", dev);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev);
     delay(1000);
   }
   else if (cmd.equals("setSSID"))
@@ -798,8 +827,8 @@ void pharseJsonSerialIn(String jsonStr)
     StringToCharArray(ssid, cssid);
     StringToCharArray(pswd, cpswd);
     connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"");
-    SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"");
+    Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
+    SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
     delay(1000);
     EEPROM_get();
   }
@@ -809,8 +838,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer1_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer2On"))
@@ -819,8 +848,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer2_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer3On"))
@@ -829,8 +858,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer3_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer4On"))
@@ -839,8 +868,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer4_on = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer1Off"))
@@ -849,8 +878,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer1_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer2Off"))
@@ -859,8 +888,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer2_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer3Off"))
@@ -869,8 +898,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer3_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimer4Off"))
@@ -879,8 +908,8 @@ void pharseJsonSerialIn(String jsonStr)
     int menit = root["menit"];
     param_timer::timer4_off = (jam * 60) + menit;
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setTimerEnable"))
@@ -890,8 +919,16 @@ void pharseJsonSerialIn(String jsonStr)
     param_limit::timer3_en = root["timer3_en"];
     param_limit::timer4_en = root["timer4_en"];
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    delay(1000);
+  }
+  else if (cmd.equals("setOutputEnable"))
+  {
+    param_limit::output_en = root["state"];
+    EEPROM_put("");
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setParamLimit"))
@@ -907,8 +944,8 @@ void pharseJsonSerialIn(String jsonStr)
     param_limit::ph_on = root["ph_on"].as<float>();
     param_limit::ph_off = root["ph_off"].as<float>();
     EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"", device_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
     delay(1000);
   }
   else if (cmd.equals("setDevice"))
@@ -918,7 +955,7 @@ void pharseJsonSerialIn(String jsonStr)
     EEPROM_put(dev);
     delay(5000);
     EEPROM_get();
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"", dev_id);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev_id);
   }
   else if (cmd.equals("getConfig"))
   {
@@ -932,8 +969,8 @@ void pharseJsonSerialIn(String jsonStr)
     int ot2 = digitalRead(pin::relay2);
     int ot3 = digitalRead(pin::relay3);
     int ot4 = digitalRead(pin::relay4);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}\n", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
+    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}\n", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
     rdloop = 0;
   }
   else if (cmd.equals("setRtc"))
@@ -1025,14 +1062,6 @@ void pharseJsonSerialIn(String jsonStr)
     sprintf(tmr2_off, "%02d:%02d", param_timer::timer2_off / 60, param_timer::timer2_off % 60);
     sprintf(tmr3_off, "%02d:%02d", param_timer::timer3_off / 60, param_timer::timer3_off % 60);
     sprintf(tmr4_off, "%02d:%02d", param_timer::timer4_off / 60, param_timer::timer4_off % 60);
-    /*StringToCharArray(param_timer::timer1_on, tmr1_on);
-    StringToCharArray(param_timer::timer2_on, tmr2_on);
-    StringToCharArray(param_timer::timer3_on, tmr3_on);
-    StringToCharArray(param_timer::timer4_on, tmr4_on);
-    StringToCharArray(param_timer::timer1_off, tmr1_off);
-    StringToCharArray(param_timer::timer2_off, tmr2_off);
-    StringToCharArray(param_timer::timer3_off, tmr3_off);
-    StringToCharArray(param_timer::timer4_off, tmr4_off);*/
 
     Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
                   "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
