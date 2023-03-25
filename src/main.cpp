@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-// #include <TroykaDHT.h>
 #include <DHT.h>
 #include <Wire.h>
 #include <DS3231.h>
@@ -10,70 +9,22 @@
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 #include <BluetoothSerial.h>
-
+#include "udpEvent.h"
+#include "param_limit.h"
+#include "param_timer.h"
+#include "pins.h"
+#include "sensors.h"
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
 BluetoothSerial SerialBT;
 
-namespace pin
-{
-  const byte tds_sensor = 35;
-  const byte ph_sensor = 34;
-  const byte soil_sensor = 32;
-  const byte dht21_sensor = 19;
-  const byte one_wire_bus = 17;
-  const byte led_builtin = 2;
-  const byte relay1 = 16;
-  const byte relay2 = 4;
-  const byte relay3 = 2;
-  const byte relay4 = 15;
-}
-
 namespace device
 {
   float aref = 3.3;
 } // namespace device
-
-namespace sensor
-{
-  float ec = 0;
-  int tds = 0;
-  float waterTemp = 0;
-  float ecCalibration = 1;
-  int smvalue = 0;
-  int smpercent = 0;
-  float suhu_udara = 0;
-  float kelembaban = 0;
-  float ph = 0;
-} // namespace sensor
-
-namespace param_timer
-{
-  int timer1_on = 0;
-  int timer2_on = 0;
-  int timer3_on = 0;
-  int timer4_on = 0;
-  int timer1_off = 0;
-  int timer2_off = 0;
-  int timer3_off = 0;
-  int timer4_off = 0;
-}
-
-namespace param_limit
-{
-  int output_en = 0;
-  int timer1_en = 0;
-  int timer2_en = 0;
-  int timer3_en = 0;
-  int timer4_en = 0;
-  int temp_on = 25, temp_off = 30;
-  int soil_on = 20, soil_off = 50;
-  float ec_on = 1.0, ec_off = 2.0;
-  float tds_on = 100, tds_off = 200;
-  float ph_on = 6.0, ph_off = 7.0;
-}
+// namespace sensor
 
 OneWire oneWire(pin::one_wire_bus);
 DallasTemperature dallasTemp(&oneWire);
@@ -112,7 +63,7 @@ char ReplyBuffer[] = "acknowledged";
 String inputString = "";     // a String to hold incoming data
 bool stringComplete = false; // whether the string is complete
 void (*resetFunc)(void) = 0;
-int StringToCharArray(String, char *);
+// int StringToCharArray(String, char *);
 void EEPROM_default();
 void EEPROM_put(String);
 double getTemperature();
@@ -205,6 +156,25 @@ void loop()
   else
     digitalWrite(pin::led_builtin, HIGH);
 
+  int packetSize = udp.parsePacket();
+  if (packetSize)
+  {
+    Serial.print("Received packet of size ");
+    Serial.println(packetSize);
+    Serial.print("From ");
+    IPAddress remoteIp = udp.remoteIP();
+    Serial.print(remoteIp);
+    Serial.print(", port ");
+    Serial.println(udp.remotePort());
+
+    // read the packet into packetBufffer
+    int len = udp.read(packetBuffer, 512);
+    if (len > 0)
+    {
+      packetBuffer[len] = 0;
+    }
+    pharseJsonUdpIn(udp, devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
+  }
   getSoilPercent();
   // int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
   // sensor::smpercent = map(analogRead(pin::soil_sensor), 0, 4095, 100, 0);
@@ -458,7 +428,7 @@ void WiFiEvent(WiFiEvent_t event)
   }
 }
 
-int StringToCharArray(String str, char *s)
+/*int StringToCharArray(String str, char *s)
 {
   int i;
   for (i = 0; i < str.length(); i++)
@@ -467,7 +437,7 @@ int StringToCharArray(String str, char *s)
   }
   *s++ = '\0';
   return i;
-}
+}*/
 
 void EEPROM_default()
 {
@@ -737,7 +707,7 @@ void EEPROM_getJson(char *json)
   eeAddr = 128;
   EEPROM.readString(eeAddr, json, 128);
 }
-
+/*
 void serialEvent()
 {
   while (Serial.available())
@@ -773,7 +743,7 @@ void serialBTEvent()
     }
   }
 }
-
+*/
 String IpAddress2String(const IPAddress &ipAddress)
 {
   return String(ipAddress[0]) + String(".") +
@@ -782,10 +752,10 @@ String IpAddress2String(const IPAddress &ipAddress)
          String(ipAddress[3]);
 }
 
-void pharseJsonSerialIn(String jsonStr)
+void serialBTJsonParse(const char *jsonStr)
 {
-  StaticJsonBuffer<200> jsonBuffer;
-  char json[128]; // = "{\"cmd\":\"setSSID\",\"device_id\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
+  // StaticJsonBuffer<200> jsonBuffer;
+  char json[128]; // = "{\"cmd\":\"setSSID\",\"devId\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
   StringToCharArray(jsonStr, json);
 
   JsonObject &root = jsonBuffer.parseObject(json);
@@ -797,9 +767,8 @@ void pharseJsonSerialIn(String jsonStr)
     return;
   }
   String cmd = root["cmd"];
-  String dev = root["device_id"];
+  String dev = root["devId"];
   StringToCharArray(dev, devId);
-  StringToCharArray(dev, device_id);
 
   if (cmd.equals("setConfig"))
   {
@@ -812,13 +781,13 @@ void pharseJsonSerialIn(String jsonStr)
     StringToCharArray(ssid, cssid);
     StringToCharArray(pswd, cpswd);
     connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev);
+    Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", dev);
+    SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", dev);
     delay(1000);
   }
   else if (cmd.equals("setSSID"))
   {
-    String dev = root["device_id"];
+    String dev = root["devId"];
 
     ssid = root["ssid"].as<String>();
     pswd = root["pswd"].as<String>();
@@ -832,258 +801,17 @@ void pharseJsonSerialIn(String jsonStr)
     delay(1000);
     EEPROM_get();
   }
-  else if (cmd.equals("setTimer1On"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer1_on = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer2On"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer2_on = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer3On"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer3_on = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer4On"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer4_on = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer1Off"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer1_off = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer2Off"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer2_off = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer3Off"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer3_off = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimer4Off"))
-  {
-    int jam = root["jam"];
-    int menit = root["menit"];
-    param_timer::timer4_off = (jam * 60) + menit;
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setTimerEnable"))
-  {
-    param_limit::timer1_en = root["timer1_en"];
-    param_limit::timer2_en = root["timer2_en"];
-    param_limit::timer3_en = root["timer3_en"];
-    param_limit::timer4_en = root["timer4_en"];
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setOutputEnable"))
-  {
-    param_limit::output_en = root["state"];
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
-  else if (cmd.equals("setParamLimit"))
-  {
-    param_limit::temp_on = root["temp_on"];
-    param_limit::temp_off = root["temp_off"];
-    param_limit::soil_on = root["soil_on"];
-    param_limit::soil_off = root["soil_off"];
-    param_limit::ec_on = root["ec_on"].as<float>();
-    param_limit::ec_off = root["ec_off"].as<float>();
-    param_limit::tds_on = root["tds_on"];
-    param_limit::tds_off = root["tds_off"];
-    param_limit::ph_on = root["ph_on"].as<float>();
-    param_limit::ph_off = root["ph_off"].as<float>();
-    EEPROM_put("");
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", device_id);
-    delay(1000);
-  }
   else if (cmd.equals("setDevice"))
   {
     localport = root["portIn"];
     remote_port = root["portOut"];
     EEPROM_put(dev);
     delay(5000);
-    EEPROM_get();
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\n", dev_id);
+    Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
   }
   else if (cmd.equals("getConfig"))
   {
-    StringToCharArray(dev_id, device_id);
-    SerialBT.printf("{\"Status\":\"getConfig\",\"device_id\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", device_id, cssid, cpswd, cip, localport, remote_port);
-    Serial.printf("{\"Status\":\"getConfig\",\"device_id\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", device_id, cssid, cpswd, cip, localport, remote_port);
-  }
-  else if (cmd.equals("getAll"))
-  {
-    int ot1 = digitalRead(pin::relay1);
-    int ot2 = digitalRead(pin::relay2);
-    int ot3 = digitalRead(pin::relay3);
-    int ot4 = digitalRead(pin::relay4);
-    SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}\n", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}\n", devId, node, 6.9, 60, 120, 1.3, 28.2, ot1, ot2, ot3, ot4);
-    rdloop = 0;
-  }
-  else if (cmd.equals("setRtc"))
-  {
-    DS3231 clock;
-    int tahun = root["tahun"];
-    byte year = tahun % 2000;
-    byte month = root["bulan"];
-    byte date = root["hari"];
-    byte hour = root["jam"];
-    byte minute = root["menit"];
-    byte second = root["detik"];
-    clock.setYear(year);
-    clock.setMonth(month);
-    clock.setDate(date);
-    clock.setHour(hour);
-    clock.setMinute(minute);
-    clock.setSecond(second);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
-  }
-  else if (cmd.equals("getRtc"))
-  {
-    DateTime now = rtc.now();
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"tanggal\":%d-%d-%d,\"jam\":%d:%d:%d}\r\n", dev, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
-  }
-  else if (cmd.equals("rdLoop"))
-  {
-    //{"cmd":"rdLoop","device_id":"01","delay":1}
-    int dly = root["delay"];
-    rdloop = dly;
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
-  }
-  else if (cmd.equals("setRelay1"))
-  {
-    //{"cmd":"setRelay2","device_id":"A001","state":"1"}
-    int ot = (root["state"]) > 0 ? 1 : 0;
-    digitalWrite(pin::relay1, ot);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
-    output &= 0xFE;
-    output |= ot;
-    EEPROM_putOutput(output);
-  }
-  else if (cmd.equals("setRelay2"))
-  {
-    //{"cmd":"setRelay2","device_id":"01","state":"0"}
-    int ot = (root["state"]) > 0 ? 1 : 0;
-    digitalWrite(pin::relay2, ot);
-    output &= 0xFD;
-    output |= (ot << 1);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
-    EEPROM_putOutput(output);
-  }
-  else if (cmd.equals("setRelay3"))
-  {
-    //{"cmd":"setRelay3","device_id":"01","state":"0"}
-    int ot = (root["state"]) > 0 ? 1 : 0;
-    digitalWrite(pin::relay3, ot);
-    output &= 0xFB;
-    output |= (ot << 2);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
-    EEPROM_putOutput(output);
-  }
-  else if (cmd.equals("setRelay4"))
-  {
-    //{"cmd":"setRelay4","device_id":"01","state":"0"}
-    int ot = (root["state"]) > 0 ? 1 : 0;
-    digitalWrite(pin::relay4, ot);
-    output &= 0xF7;
-    output |= (ot << 3);
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\"}\r\n", dev);
-    EEPROM_putOutput(output);
-  }
-
-  else if (cmd.equals("getTimerParam"))
-  {
-    char tmr1_on[8];
-    char tmr2_on[8];
-    char tmr3_on[8];
-    char tmr4_on[8];
-    char tmr1_off[8];
-    char tmr2_off[8];
-    char tmr3_off[8];
-    char tmr4_off[8];
-    sprintf(tmr1_on, "%02d:%02d", param_timer::timer1_on / 60, param_timer::timer1_on % 60);
-    sprintf(tmr2_on, "%02d:%02d", param_timer::timer2_on / 60, param_timer::timer2_on % 60);
-    sprintf(tmr3_on, "%02d:%02d", param_timer::timer3_on / 60, param_timer::timer3_on % 60);
-    sprintf(tmr4_on, "%02d:%02d", param_timer::timer4_on / 60, param_timer::timer4_on % 60);
-    sprintf(tmr1_off, "%02d:%02d", param_timer::timer1_off / 60, param_timer::timer1_off % 60);
-    sprintf(tmr2_off, "%02d:%02d", param_timer::timer2_off / 60, param_timer::timer2_off % 60);
-    sprintf(tmr3_off, "%02d:%02d", param_timer::timer3_off / 60, param_timer::timer3_off % 60);
-    sprintf(tmr4_off, "%02d:%02d", param_timer::timer4_off / 60, param_timer::timer4_off % 60);
-
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
-                  "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
-                  device_id, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
-  }
-  else if (cmd.equals("getTimerState"))
-  {
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
-                  device_id, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
-  }
-  else if (cmd.equals("getLimitParam"))
-  {
-    Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"temp_on\":%d,\"temp_off\":%d,\"soil_on\":%d,\"soil_off\":%d,"
-                  "\"ec_on\":%.2f,\"soil_off\":%.2f,\"tds_on\":%d,\"tds_off\":%d,\"ph_on\":%.2f\"ph_off\":%.2f}\r\n",
-                  device_id, param_limit::temp_on, param_limit::temp_off, param_limit::soil_on, param_limit::soil_off, param_limit::ec_on, param_limit::ec_off,
-                  param_limit::tds_on, param_limit::tds_off, param_limit::ph_on, param_limit::ph_off);
-  }
-
-  else if (cmd.equals("forceReset"))
-  {
-    Serial.printf("{\"Status\":\"Device force reset\",\"device_id\":\"%s\"}\r\n", dev);
-    delay(1000);
-    ESP.restart();
+    SerialBT.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
+    Serial.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
   }
 }
