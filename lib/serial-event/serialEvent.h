@@ -13,6 +13,6 @@
 // StaticJsonBuffer<200> jsonBuffer;
 char json[128];
 RTClib rtc;
-String serialJsonUdpIn(BluetoothSerial SerialBT, char *devId, bool connected, int rdloop, const char *jsonStr, std::function<void(String)> EEPROM_put, std::function<void()> EEPROM_get);
+String parseJsonSerialIn(BluetoothSerial SerialBT, char *devId, int *rdloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get);
 int StringToCharArray(String, char *);
 #endif

@@ -1,6 +1,6 @@
-#include "serialEvent..h"
+#include "serialEvent.h"
 
-String serialJsonUdpIn(BluetoothSerial SerialBT, char *devId, bool connected, int rdloop, const char *jsonStr, std::function<void(String)> EEPROM_put, std::function<void()> EEPROM_get)
+String parseJsonSerialIn(BluetoothSerial SerialBT, char *devId, int *rdloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get)
 {
     StaticJsonBuffer<200> jsonBuffer;
     char json[128]; // = "{\"cmd\":\"setSSID\",\"devId\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
@@ -171,7 +171,7 @@ String serialJsonUdpIn(BluetoothSerial SerialBT, char *devId, bool connected, in
     {
         //{"cmd":"rdLoop","devId":"01","delay":1}
         int dly = root["delay"];
-        rdloop = dly;
+        *rdloop = dly;
         Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
     }
     /*else if (cmd.equals("setRelay1"))

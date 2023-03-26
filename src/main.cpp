@@ -10,6 +10,7 @@
 #include <ArduinoJson.h>
 #include <BluetoothSerial.h>
 #include "udpEvent.h"
+#include "serialEvent.h"
 #include "param_limit.h"
 #include "param_timer.h"
 #include "pins.h"
@@ -329,6 +330,38 @@ void loop()
     }
   }
   Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+
+  if (stringComplete)
+  {
+    Serial.println(inputString);
+    parseJsonSerialIn(SerialBT, devId, &rdloop, inputString, EEPROM_put, EEPROM_get);
+    parseJsonSerialBTIn(inputString);
+    inputString = "";
+    stringComplete = false;
+  }
+  while (SerialBT.available())
+  {
+    // get the new byte:
+    char inChar = (char)SerialBT.read();
+    // Serial.print(inChar);
+    inputString += inChar;
+    if (inChar == '\r')
+    {
+      stringComplete = true;
+    }
+  }
+
+  while (Serial.available())
+  {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // Serial.print(inChar);
+    inputString += inChar;
+    if (inChar == '\r')
+    {
+      stringComplete = true;
+    }
+  }
   delay(1000);
 }
 
@@ -752,7 +785,7 @@ String IpAddress2String(const IPAddress &ipAddress)
          String(ipAddress[3]);
 }
 
-void serialBTJsonParse(const char *jsonStr)
+void parseJsonSerialBTIn(String jsonStr)
 {
   // StaticJsonBuffer<200> jsonBuffer;
   char json[128]; // = "{\"cmd\":\"setSSID\",\"devId\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
