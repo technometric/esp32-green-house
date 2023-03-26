@@ -261,18 +261,7 @@ void loop()
   Serial.println(F("°C "));
   */
   DateTime now = rtc.now();
-
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(' ');
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
+  Serial.printf("%02d/%02d/%4d %02d:%02d:%02d", now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
   Serial.println();
 
   timer_now = (now.hour() * 60) + now.minute();
@@ -360,24 +349,27 @@ void loop()
     digitalWrite(pin::relay3, LOW);
     digitalWrite(pin::relay4, LOW);
   }
-
-  if (++dly >= rdloop)
+  if (rdloop > 0)
   {
-    dly = 0;
-    if (connected)
+    if (++dly >= rdloop)
     {
-      ot1 = digitalRead(pin::relay1);
-      ot2 = digitalRead(pin::relay2);
-      ot3 = digitalRead(pin::relay3);
-      ot4 = digitalRead(pin::relay4);
-      StringToCharArray(dev_id, devId);
-      udp.beginPacket(udp.remoteIP(), remote_port);
-      udp.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
-      udp.endPacket();
-      SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+      dly = 0;
+      if (connected)
+      {
+        ot1 = digitalRead(pin::relay1);
+        ot2 = digitalRead(pin::relay2);
+        ot3 = digitalRead(pin::relay3);
+        ot4 = digitalRead(pin::relay4);
+        StringToCharArray(dev_id, devId);
+        udp.beginPacket(udp.remoteIP(), remote_port);
+        udp.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+        udp.endPacket();
+        SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+      }
     }
   }
   Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+  Serial.println();
 
   if (stringComplete)
   {
