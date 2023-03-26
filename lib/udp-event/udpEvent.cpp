@@ -11,7 +11,7 @@ int StringToCharArray(String str, char *s)
     return i;
 }
 
-String pharseJsonUdpIn(WiFiUDP udp, char *devId, bool connected, int rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put)
+String parseJsonUdpIn(WiFiUDP udp, char *devId, bool connected, int rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put)
 {
     StringToCharArray(jsonStr, json);
     JsonObject &root = jsonBuffer.parseObject(json);
@@ -21,7 +21,7 @@ String pharseJsonUdpIn(WiFiUDP udp, char *devId, bool connected, int rdloop, int
         udp.beginPacket(udp.remoteIP(), remote_port);
         udp.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
         udp.endPacket();
-        return;
+        return "";
     }
     String cmd = root["cmd"];
     String dev = root["devId"];
@@ -282,4 +282,5 @@ String pharseJsonUdpIn(WiFiUDP udp, char *devId, bool connected, int rdloop, int
                    param_limit::tds_on, param_limit::tds_off, param_limit::ph_on, param_limit::ph_off);
         udp.endPacket();
     }
+    return "";
 }

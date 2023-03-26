@@ -1,3 +1,5 @@
+#ifndef PINS_H
+#define PINS_H
 namespace pin
 {
     const int tds_sensor = 35;
@@ -11,3 +13,4 @@ namespace pin
     const int relay3 = 2;
     const int relay4 = 15;
 }
+#endif

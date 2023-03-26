@@ -11,10 +11,6 @@
 #include <BluetoothSerial.h>
 #include "udpEvent.h"
 #include "serialEvent.h"
-#include "param_limit.h"
-#include "param_timer.h"
-#include "pins.h"
-#include "sensors.h"
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
@@ -25,7 +21,57 @@ namespace device
 {
   float aref = 3.3;
 } // namespace device
-// namespace sensor
+
+namespace param_limit
+{
+  int output_en = 0;
+  int timer1_en = 0;
+  int timer2_en = 0;
+  int timer3_en = 0;
+  int timer4_en = 0;
+  int temp_on = 25, temp_off = 30;
+  int soil_on = 20, soil_off = 50;
+  float ec_on = 1.0, ec_off = 2.0;
+  float tds_on = 100, tds_off = 200;
+  float ph_on = 6.0, ph_off = 7.0;
+}
+namespace param_timer
+{
+  int timer1_on = 0;
+  int timer2_on = 0;
+  int timer3_on = 0;
+  int timer4_on = 0;
+  int timer1_off = 0;
+  int timer2_off = 0;
+  int timer3_off = 0;
+  int timer4_off = 0;
+}
+namespace pin
+{
+  int tds_sensor = 35;
+  int ph_sensor = 34;
+  int soil_sensor = 32;
+  int dht21_sensor = 19;
+  int one_wire_bus = 17;
+  int led_builtin = 2;
+  int relay1 = 16;
+  int relay2 = 4;
+  int relay3 = 2;
+  int relay4 = 15;
+}
+
+namespace sensor
+{
+  float ec;
+  int tds;
+  float waterTemp;
+  float ecCalibration;
+  int smvalue;
+  int smpercent;
+  float suhu_udara;
+  float kelembaban;
+  float ph;
+}
 
 OneWire oneWire(pin::one_wire_bus);
 DallasTemperature dallasTemp(&oneWire);
@@ -44,6 +90,7 @@ char json[128] = "\0";
 char devId[8];
 int ot1, ot2, ot3, ot4;
 int output = 0;
+StaticJsonBuffer<200> jsonBuffer;
 // Are we currently connected?
 boolean connected = false;
 boolean reconnect;
@@ -77,6 +124,7 @@ int EEPROM_getOutput();
 void EEPROM_putOutput(int ot);
 void readTdsQuick();
 void getSoilPercent();
+void parseJsonSerialBTIn(String jsonStr);
 
 void setup()
 {
@@ -174,7 +222,7 @@ void loop()
     {
       packetBuffer[len] = 0;
     }
-    pharseJsonUdpIn(udp, devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
+    parseJsonUdpIn(udp, devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
   }
   getSoilPercent();
   // int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));

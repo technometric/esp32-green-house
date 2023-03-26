@@ -2,17 +2,15 @@
 
 String parseJsonSerialIn(BluetoothSerial SerialBT, char *devId, int *rdloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get)
 {
-    StaticJsonBuffer<200> jsonBuffer;
     char json[128]; // = "{\"cmd\":\"setSSID\",\"devId\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
     StringToCharArray(jsonStr, json);
-
     JsonObject &root = jsonBuffer.parseObject(json);
     if (!root.success())
     {
         // Serial.println("parseObject() failed");
         Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
         SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
-        return;
+        return "";
     }
     String cmd = root["cmd"];
     String dev = root["devId"];
@@ -257,4 +255,5 @@ String parseJsonSerialIn(BluetoothSerial SerialBT, char *devId, int *rdloop, Str
         delay(1000);
         ESP.restart();
     }
+    return "";
 }

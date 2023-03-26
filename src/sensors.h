@@ -1,12 +1,15 @@
+#ifndef SENSORS_H
+#define SENSORS_H
 namespace sensor
 {
-    float ec = 0;
-    int tds = 0;
-    float waterTemp = 0;
-    float ecCalibration = 1;
-    int smvalue = 0;
-    int smpercent = 0;
-    float suhu_udara = 0;
-    float kelembaban = 0;
-    float ph = 0;
+    extern float ec;
+    extern int tds;
+    extern float waterTemp;
+    extern float ecCalibration;
+    extern int smvalue;
+    extern int smpercent;
+    extern float suhu_udara;
+    extern float kelembaban;
+    extern float ph;
 }
+#endif
