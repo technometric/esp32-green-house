@@ -152,7 +152,7 @@ void setup()
 
   StringToCharArray(ssid, cssid);
   StringToCharArray(pswd, cpswd);
-  connectToWiFi(cssid, cpswd);
+  
 
   pinMode(pin::led_builtin, OUTPUT);
   pinMode(pin::relay1, OUTPUT);
@@ -164,9 +164,12 @@ void setup()
   digitalWrite(pin::relay2, LOW);
   digitalWrite(pin::relay3, LOW);
   digitalWrite(pin::relay4, LOW);
-
+  Serial.println(dev_id);
+  Serial.println(localport);
+  Serial.println(remote_port);
   delay(500);
   Serial.println("esp32 Ready!");
+  connectToWiFi(cssid, cpswd);
   /*
   t.setYear(23);
   t.setMonth(2);
@@ -261,8 +264,8 @@ void loop()
   Serial.println(F("°C "));
   */
   DateTime now = rtc.now();
-  Serial.printf("%02d/%02d/%4d %02d:%02d:%02d", now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
-  Serial.println();
+  //Serial.printf("%02d/%02d/%4d %02d:%02d:%02d", now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
+  //Serial.println();
 
   timer_now = (now.hour() * 60) + now.minute();
   if (param_limit::output_en == 1)
@@ -495,7 +498,7 @@ void WiFiEvent(WiFiEvent_t event)
   }
   break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
-    Serial.println("WiFi lost connection");
+    //Serial.println("WiFi lost connection");
     connected = false;
     break;
   }
@@ -823,69 +826,4 @@ String IpAddress2String(const IPAddress &ipAddress)
          String(ipAddress[1]) + String(".") +
          String(ipAddress[2]) + String(".") +
          String(ipAddress[3]);
-}
-
-String parseJsonSerialBTIn(String jsonStr)
-{
-  // StaticJsonBuffer<200> jsonBuffer;
-  char json[128]; // = "{\"cmd\":\"setSSID\",\"devId\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
-  StringToCharArray(jsonStr, json);
-
-  JsonObject &root = jsonBuffer.parseObject(json);
-  if (!root.success())
-  {
-    // Serial.println("parseObject() failed");
-    Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
-    SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
-    return "";
-  }
-  String cmd = root["cmd"];
-  String dev = root["devId"];
-  StringToCharArray(dev, devId);
-
-  if (cmd.equals("setConfig"))
-  {
-    ssid = root["ssid"].as<String>();
-    pswd = root["pswd"].as<String>();
-    localport = root["portIn"];
-    remote_port = root["portOut"];
-    EEPROM_put("");
-    connected = false;
-    StringToCharArray(ssid, cssid);
-    StringToCharArray(pswd, cpswd);
-    connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
-    SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
-    delay(1000);
-  }
-  else if (cmd.equals("setSSID"))
-  {
-    String dev = root["devId"];
-
-    ssid = root["ssid"].as<String>();
-    pswd = root["pswd"].as<String>();
-    EEPROM_put("");
-    connected = false;
-    StringToCharArray(ssid, cssid);
-    StringToCharArray(pswd, cpswd);
-    connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
-    SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
-    delay(1000);
-    EEPROM_get();
-  }
-  else if (cmd.equals("setDevice"))
-  {
-    localport = root["portIn"];
-    remote_port = root["portOut"];
-    EEPROM_put(dev);
-    delay(5000);
-    Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
-  }
-  else if (cmd.equals("getConfig"))
-  {
-    SerialBT.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
-    Serial.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
-  }
-  return "";
 }

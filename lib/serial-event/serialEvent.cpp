@@ -14,55 +14,57 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
     }
     String cmd = root["cmd"];
     String dev = root["devId"];
+    
+    //StringToCharArray(dev, devId);
+    StringToCharArray(dev_id, devId);
+    if (cmd.equals("setConfig"))
+    {
+        ssid = root["ssid"].as<String>();
+        pswd = root["pswd"].as<String>();
+        localport = root["portIn"];
+        remote_port = root["portOut"];
+        EEPROM_put("");
+        connected = false;
+        StringToCharArray(ssid, cssid);
+        StringToCharArray(pswd, cpswd);
+        connectToWiFi(cssid, cpswd);
+        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+        SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+        delay(1000);
+    }
+    else if (cmd.equals("setSSID"))
+    {
+        String dev = root["devId"];
+
+        ssid = root["ssid"].as<String>();
+        pswd = root["pswd"].as<String>();
+        EEPROM_put("");
+        connected = false;
+        StringToCharArray(ssid, cssid);
+        StringToCharArray(pswd, cpswd);
+        connectToWiFi(cssid, cpswd);
+        Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
+        SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
+        delay(1000);
+        EEPROM_get();
+    }
+    else if (cmd.equals("setDevice"))
+    {
+        localport = root["portIn"];
+        remote_port = root["portOut"];
+        EEPROM_put(dev);
+        delay(5000);
+        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+    }
+    else if (cmd.equals("getConfig"))
+    {
+        //StringToCharArray(dev_id, devId);
+        SerialBT.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
+        Serial.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
+    }
     if (dev.equals(dev_id))
     {
-            StringToCharArray(dev, devId);
-
-        if (cmd.equals("setConfig"))
-        {
-            ssid = root["ssid"].as<String>();
-            pswd = root["pswd"].as<String>();
-            localport = root["portIn"];
-            remote_port = root["portOut"];
-            EEPROM_put("");
-            connected = false;
-            StringToCharArray(ssid, cssid);
-            StringToCharArray(pswd, cpswd);
-            connectToWiFi(cssid, cpswd);
-            Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
-            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
-            delay(1000);
-        }
-        else if (cmd.equals("setSSID"))
-        {
-            String dev = root["devId"];
-
-            ssid = root["ssid"].as<String>();
-            pswd = root["pswd"].as<String>();
-            EEPROM_put("");
-            connected = false;
-            StringToCharArray(ssid, cssid);
-            StringToCharArray(pswd, cpswd);
-            connectToWiFi(cssid, cpswd);
-            Serial.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
-            SerialBT.printf("{\"Status\":0,\"message\":\"Reconnect to network\"}\n");
-            delay(1000);
-            EEPROM_get();
-        }
-        else if (cmd.equals("setDevice"))
-        {
-            localport = root["portIn"];
-            remote_port = root["portOut"];
-            EEPROM_put(dev);
-            delay(5000);
-            Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
-        }
-        else if (cmd.equals("getConfig"))
-        {
-            SerialBT.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
-            Serial.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
-        }
-        else if (cmd.equals("setTimer1On"))
+        if (cmd.equals("setTimer1On"))
         {
             int jam = root["jam"];
             int menit = root["menit"];

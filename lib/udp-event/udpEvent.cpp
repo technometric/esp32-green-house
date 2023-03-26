@@ -11,10 +11,17 @@ int StringToCharArray(String str, char *s)
     return i;
 }
 
+void copy_buff(const char *src, char *dest)
+{
+   while (*src)
+      *dest++ = *src++;
+}
+
 String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put)
 {
-    StringToCharArray(jsonStr, json);
-    JsonObject &root = jsonBuffer.parseObject(json);
+    char js[128];
+    copy_buff(jsonStr, js);
+    JsonObject &root = jsonBuffer.parseObject(js);
     if (!root.success())
     {
         Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
