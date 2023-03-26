@@ -6,7 +6,7 @@
 #include <WiFiUdp.h>
 #include <DS3231.h>
 #include <BluetoothSerial.h>
-
+extern BluetoothSerial SerialBT;
 extern StaticJsonBuffer<200> jsonBuffer;
 namespace param_limit
 {
@@ -58,8 +58,16 @@ namespace sensor
     extern float kelembaban;
     extern float ph;
 }
+extern int localport;
+extern int remote_port;
+extern String ssid;
+extern String pswd;
+extern bool connected;
+extern char cssid[50]; // = "Technometric2";
+extern char cpswd[50]; // = "12345678";
 extern char json[128];
+extern char cip[30];
 extern RTClib rtc;
-String parseJsonSerialIn(BluetoothSerial SerialBT, char *devId, int *rdloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get);
+String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get, std::function<void(char *, char *)> connectToWiFi);
 int StringToCharArray(String, char *);
 #endif

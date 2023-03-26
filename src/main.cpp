@@ -118,13 +118,13 @@ double getTemperature();
 void EEPROM_putJson(char *);
 String IpAddress2String(const IPAddress &ipAddress);
 void WiFiEvent(WiFiEvent_t event);
-void connectToWiFi(const char *, const char *);
+void connectToWiFi(char *, char *);
 void EEPROM_get();
 int EEPROM_getOutput();
 void EEPROM_putOutput(int ot);
 void readTdsQuick();
 void getSoilPercent();
-void parseJsonSerialBTIn(String jsonStr);
+String parseJsonSerialBTIn(String jsonStr);
 
 void setup()
 {
@@ -189,7 +189,6 @@ int timer_now = 0;
 int dly = 0;
 void loop()
 {
-
   if (!connected)
   {
     if (reconnect)
@@ -203,8 +202,9 @@ void loop()
     delay(100);
   }
   else
+  {
     digitalWrite(pin::led_builtin, HIGH);
-
+  }
   int packetSize = udp.parsePacket();
   if (packetSize)
   {
@@ -368,14 +368,14 @@ void loop()
       }
     }
   }
-  Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
-  Serial.println();
+  // Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+  // Serial.println();
 
   if (stringComplete)
   {
     Serial.println(inputString);
-    parseJsonSerialIn(SerialBT, devId, &rdloop, inputString, EEPROM_put, EEPROM_get);
-    parseJsonSerialBTIn(inputString);
+    parseJsonSerialIn(devId, &rdloop, inputString, EEPROM_put, EEPROM_get, connectToWiFi);
+    // parseJsonSerialBTIn(inputString);
     inputString = "";
     stringComplete = false;
   }
@@ -460,7 +460,7 @@ void getSoilPercent()
   sensor::smpercent = map(sensor::smvalue, 0, 4095, 100, 0);
 }
 
-void connectToWiFi(const char *ssid, const char *pwd)
+void connectToWiFi(char *ssid, char *pwd)
 {
   Serial.println("Connecting to WiFi network: " + String(ssid) + " - " + String(pwd));
 
@@ -825,7 +825,7 @@ String IpAddress2String(const IPAddress &ipAddress)
          String(ipAddress[3]);
 }
 
-void parseJsonSerialBTIn(String jsonStr)
+String parseJsonSerialBTIn(String jsonStr)
 {
   // StaticJsonBuffer<200> jsonBuffer;
   char json[128]; // = "{\"cmd\":\"setSSID\",\"devId\":\"001\",\"ssid\":\"Technometric2\",\"pswd\":\"windi09dhika07\",\"localPort\":8888,\"remotePort\":8899}";
@@ -837,7 +837,7 @@ void parseJsonSerialBTIn(String jsonStr)
     // Serial.println("parseObject() failed");
     Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
     SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
-    return;
+    return "";
   }
   String cmd = root["cmd"];
   String dev = root["devId"];
@@ -854,8 +854,8 @@ void parseJsonSerialBTIn(String jsonStr)
     StringToCharArray(ssid, cssid);
     StringToCharArray(pswd, cpswd);
     connectToWiFi(cssid, cpswd);
-    Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", dev);
-    SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", dev);
+    Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+    SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
     delay(1000);
   }
   else if (cmd.equals("setSSID"))
@@ -887,4 +887,5 @@ void parseJsonSerialBTIn(String jsonStr)
     SerialBT.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
     Serial.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
   }
+  return "";
 }
