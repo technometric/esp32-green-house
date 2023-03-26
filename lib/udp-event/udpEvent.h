@@ -57,8 +57,10 @@ namespace sensor
     extern float kelembaban;
     extern float ph;
 }
+extern String dev_id;
+extern WiFiUDP udp;
 extern char json[128];
 extern RTClib rtc;
-String parseJsonUdpIn(WiFiUDP udp, char *devId, bool connected, int rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put);
+String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put);
 int StringToCharArray(String, char *);
 #endif

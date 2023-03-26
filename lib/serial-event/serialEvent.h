@@ -58,6 +58,7 @@ namespace sensor
     extern float kelembaban;
     extern float ph;
 }
+extern String dev_id;
 extern int localport;
 extern int remote_port;
 extern String ssid;
