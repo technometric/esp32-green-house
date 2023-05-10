@@ -210,6 +210,7 @@ void loop()
     int packetSize = udp.parsePacket();
     if (packetSize)
     {
+      EEPROM_get();
       Serial.print("Received packet of size ");
       Serial.println(packetSize);
       Serial.print("From ");
