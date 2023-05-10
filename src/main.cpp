@@ -152,7 +152,6 @@ void setup()
 
   StringToCharArray(ssid, cssid);
   StringToCharArray(pswd, cpswd);
-  
 
   pinMode(pin::led_builtin, OUTPUT);
   pinMode(pin::relay1, OUTPUT);
@@ -207,26 +206,28 @@ void loop()
   else
   {
     digitalWrite(pin::led_builtin, HIGH);
-  }
-  int packetSize = udp.parsePacket();
-  if (packetSize)
-  {
-    Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
-    IPAddress remoteIp = udp.remoteIP();
-    Serial.print(remoteIp);
-    Serial.print(", port ");
-    Serial.println(udp.remotePort());
 
-    // read the packet into packetBufffer
-    int len = udp.read(packetBuffer, 512);
-    if (len > 0)
+    int packetSize = udp.parsePacket();
+    if (packetSize)
     {
-      packetBuffer[len] = 0;
+      Serial.print("Received packet of size ");
+      Serial.println(packetSize);
+      Serial.print("From ");
+      IPAddress remoteIp = udp.remoteIP();
+      Serial.print(remoteIp);
+      Serial.print(", port ");
+      Serial.println(udp.remotePort());
+
+      // read the packet into packetBufffer
+      int len = udp.read(packetBuffer, 512);
+      if (len > 0)
+      {
+        packetBuffer[len] = 0;
+      }
+      parseJsonUdpIn(devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
     }
-    parseJsonUdpIn(devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
   }
+
   getSoilPercent();
   // int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
   // sensor::smpercent = map(analogRead(pin::soil_sensor), 0, 4095, 100, 0);
@@ -245,7 +246,6 @@ void loop()
   // Serial.print("pH: ");
   // Serial.println(ph(voltage));
   readTdsQuick();
-
   sensor::kelembaban = dht.readHumidity();
   // Read temperature as Celsius (the default)
   sensor::suhu_udara = dht.readTemperature();
@@ -256,16 +256,8 @@ void loop()
     Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
-  /*
-  Serial.print(F("Humidity: "));
-  Serial.print(h);
-  Serial.print(F("%  Temperature: "));
-  Serial.print(t);
-  Serial.println(F("°C "));
-  */
+
   DateTime now = rtc.now();
-  //Serial.printf("%02d/%02d/%4d %02d:%02d:%02d", now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
-  //Serial.println();
 
   timer_now = (now.hour() * 60) + now.minute();
   if (param_limit::output_en == 1)
@@ -371,14 +363,13 @@ void loop()
       }
     }
   }
-  // Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
-  // Serial.println();
 
   if (stringComplete)
   {
     Serial.println(inputString);
+    EEPROM_get();
+    StringToCharArray(dev_id, devId);
     parseJsonSerialIn(devId, &rdloop, inputString, EEPROM_put, EEPROM_get, connectToWiFi);
-    // parseJsonSerialBTIn(inputString);
     inputString = "";
     stringComplete = false;
   }
@@ -498,7 +489,7 @@ void WiFiEvent(WiFiEvent_t event)
   }
   break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
-    //Serial.println("WiFi lost connection");
+    // Serial.println("WiFi lost connection");
     connected = false;
     break;
   }

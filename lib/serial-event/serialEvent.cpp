@@ -14,8 +14,8 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
     }
     String cmd = root["cmd"];
     String dev = root["devId"];
-    
-    //StringToCharArray(dev, devId);
+
+    // StringToCharArray(dev, devId);
     StringToCharArray(dev_id, devId);
     if (cmd.equals("setConfig"))
     {
@@ -58,7 +58,8 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
     }
     else if (cmd.equals("getConfig"))
     {
-        //StringToCharArray(dev_id, devId);
+        // EEPROM_get();
+        // StringToCharArray(dev_id, devId);
         SerialBT.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
         Serial.printf("{\"Status\":\"getConfig\",\"devId\":\"%s\",\"ssid\":\"%s\",\"pswd\":\"%s\",\"localIp\":\"%s\",\"portIn\":%d,\"portOut\":%d}\n", devId, cssid, cpswd, cip, localport, remote_port);
     }
@@ -281,20 +282,20 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             sprintf(tmr4_off, "%02d:%02d", param_timer::timer4_off / 60, param_timer::timer4_off % 60);
 
             Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
-                        "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
-                        devId, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
+                          "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
+                          devId, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
         }
         else if (cmd.equals("getTimerState"))
         {
             Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
-                        devId, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
+                          devId, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
         }
         else if (cmd.equals("getLimitParam"))
         {
             Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"temp_on\":%d,\"temp_off\":%d,\"soil_on\":%d,\"soil_off\":%d,"
-                        "\"ec_on\":%.2f,\"soil_off\":%.2f,\"tds_on\":%d,\"tds_off\":%d,\"ph_on\":%.2f\"ph_off\":%.2f}\r\n",
-                        devId, param_limit::temp_on, param_limit::temp_off, param_limit::soil_on, param_limit::soil_off, param_limit::ec_on, param_limit::ec_off,
-                        param_limit::tds_on, param_limit::tds_off, param_limit::ph_on, param_limit::ph_off);
+                          "\"ec_on\":%.2f,\"soil_off\":%.2f,\"tds_on\":%d,\"tds_off\":%d,\"ph_on\":%.2f\"ph_off\":%.2f}\r\n",
+                          devId, param_limit::temp_on, param_limit::temp_off, param_limit::soil_on, param_limit::soil_off, param_limit::ec_on, param_limit::ec_off,
+                          param_limit::tds_on, param_limit::tds_off, param_limit::ph_on, param_limit::ph_off);
         }
 
         else if (cmd.equals("forceReset"))
