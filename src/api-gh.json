@@ -1,0 +1,93 @@
+//json api
+
+{
+    "cmd":"setTimer1On",
+    "jam":12,
+    "menit":30
+}
+{
+    "cmd":"setTimer2On",
+    "jam":12,
+    "menit":30
+}
+{
+    "cmd":"setTimer3On",
+    "jam":12,
+    "menit":30
+}
+{
+    "cmd":"setTimer4On",
+    "jam":12,
+    "menit":30
+}
+
+{
+    "cmd":"setTimer1Off",
+    "jam":12,
+    "menit":30
+}
+{
+    "cmd":"setTimer2Off",
+    "jam":12,
+    "menit":30
+}
+{
+    "cmd":"setTimer3Off",
+    "jam":12,
+    "menit":30
+}
+{
+    "cmd":"setTimer4Off",
+    "jam":12,
+    "menit":30
+}
+
+{
+    "cmd":"setTimerEnable",
+    "timer1_en":0,
+    "timer2_en":0,
+    "timer3_en":0,
+    "timer4_en":0,
+}
+
+{
+    "cmd":"setOutputEnable",
+    "state":0
+}
+
+{
+    "cmd":"setParamLimit",
+    "temp_on" : 30,
+    "temp_off" : 25,
+    "soil_on" : 80,
+    "soil_off" : 60,
+    "ec_on" : 1.5,
+    "ec_off" : 0.5,
+    "tds_on" : 300,
+    "tds_off" : 200,
+    "ph_on" : 4.6,
+    "ph_off" : 7
+}
+
+{
+    "cmd":"setRtc",
+    "tahun":2023,
+    "bulan":3,
+    "hari":14,
+    "jam":12,
+    "menit":15,
+    "detik":0,
+}
+
+{
+    "cmd":"getRtc"
+}
+{
+    "cmd":"getTimerParam"
+}
+{
+    "cmd":"getTimerState"
+}
+{
+    "cmd":"getLimitParam"
+}

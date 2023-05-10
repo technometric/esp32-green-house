@@ -152,7 +152,6 @@ void setup()
 
   StringToCharArray(ssid, cssid);
   StringToCharArray(pswd, cpswd);
-  
 
   pinMode(pin::led_builtin, OUTPUT);
   pinMode(pin::relay1, OUTPUT);
@@ -206,33 +205,29 @@ void loop()
   }
   else
   {
+    int packetSize = udp.parsePacket();
+    if (packetSize)
+    {
+      Serial.print("Received packet of size ");
+      Serial.println(packetSize);
+      Serial.print("From ");
+      IPAddress remoteIp = udp.remoteIP();
+      Serial.print(remoteIp);
+      Serial.print(", port ");
+      Serial.println(udp.remotePort());
+
+      // read the packet into packetBufffer
+      int len = udp.read(packetBuffer, 512);
+      if (len > 0)
+      {
+        packetBuffer[len] = 0;
+      }
+      parseJsonUdpIn(devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
+    }
     digitalWrite(pin::led_builtin, HIGH);
   }
-  int packetSize = udp.parsePacket();
-  if (packetSize)
-  {
-    Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
-    IPAddress remoteIp = udp.remoteIP();
-    Serial.print(remoteIp);
-    Serial.print(", port ");
-    Serial.println(udp.remotePort());
 
-    // read the packet into packetBufffer
-    int len = udp.read(packetBuffer, 512);
-    if (len > 0)
-    {
-      packetBuffer[len] = 0;
-    }
-    parseJsonUdpIn(devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
-  }
   getSoilPercent();
-  // int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
-  // sensor::smpercent = map(analogRead(pin::soil_sensor), 0, 4095, 100, 0);
-  // Serial.print("Kelembaban Tanah: ");
-  // Serial.println(moisturePercentage);
-
   int measurings = 0;
   for (int i = 0; i < samples; i++)
   {
@@ -242,12 +237,8 @@ void loop()
 
   float voltage = (3.3 / adc_resolution) * (measurings / samples);
   sensor::ph = ph(voltage);
-  // Serial.print("pH: ");
-  // Serial.println(ph(voltage));
   readTdsQuick();
-
   sensor::kelembaban = dht.readHumidity();
-  // Read temperature as Celsius (the default)
   sensor::suhu_udara = dht.readTemperature();
 
   // Check if any reads failed and exit early (to try again).
@@ -256,16 +247,7 @@ void loop()
     Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
-  /*
-  Serial.print(F("Humidity: "));
-  Serial.print(h);
-  Serial.print(F("%  Temperature: "));
-  Serial.print(t);
-  Serial.println(F("°C "));
-  */
   DateTime now = rtc.now();
-  //Serial.printf("%02d/%02d/%4d %02d:%02d:%02d", now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
-  //Serial.println();
 
   timer_now = (now.hour() * 60) + now.minute();
   if (param_limit::output_en == 1)
@@ -371,22 +353,17 @@ void loop()
       }
     }
   }
-  // Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
-  // Serial.println();
 
   if (stringComplete)
   {
     Serial.println(inputString);
     parseJsonSerialIn(devId, &rdloop, inputString, EEPROM_put, EEPROM_get, connectToWiFi);
-    // parseJsonSerialBTIn(inputString);
     inputString = "";
     stringComplete = false;
   }
   while (SerialBT.available())
   {
-    // get the new byte:
     char inChar = (char)SerialBT.read();
-    // Serial.print(inChar);
     inputString += inChar;
     if (inChar == '\r')
     {
@@ -410,52 +387,12 @@ void loop()
 
 void readTdsQuick()
 {
-  // dallasTemp.requestTemperatures();
-  sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
+  sensor::waterTemp = 25.0;
   float rawEc = (analogRead(pin::tds_sensor) * device::aref) / adc_resolution;
-  // Serial.print("rawEC: ");
-  // Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
   sensor::ec = (rawEc / tempCoefficient) * sensor::ecCalibration;
   sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5;
-  // tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5;
-  // Serial.print("EC: ");
-  // Serial.println(sensor::ec);
-  // Serial.print("TDS: ");
-  // Serial.println(sensor::tds);
 }
-
-/*
-void readTdsQuick() {
-  dallasTemperature.requestTemperatures();
-  sensor::waterTemp = dallasTemperature.getTempCByIndex(0);
-  float rawEc = analogRead(pin::tds_sensor) * device::aref / 1024.0; // read the analog value more stable by the median filtering algorithm, and convert to voltage value
-  float temperatureCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0); // temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-  sensor::ec = (rawEc / temperatureCoefficient) * sensor::ecCalibration; // temperature and calibration compensation
-  sensor::tds = (133.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5; //convert voltage value to tds value
-  Serial.print(F("TDS:")); Serial.println(sensor::tds);
-  Serial.print(F("EC:")); Serial.println(sensor::ec, 2);
-  Serial.print(F("Temperature:")); Serial.println(sensor::waterTemp,2);
-
- display.clearDisplay();
-  display.setCursor(10,0);
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
- display.print("TDS:"+String(sensor::tds));
-    display.setCursor(10,20);
-  display.setTextSize(2);
- display.print("EC:"+String(sensor::ec, 2));
-   display.setCursor(10,45);
-  display.setTextSize(2);
- display.print("T:"+String(sensor::waterTemp,2));
-  display.display();
-    Blynk.virtualWrite(V0,(sensor::tds));
-
-   Blynk.virtualWrite(V1,(sensor::ec));
-
-     Blynk.virtualWrite(V2,(sensor::waterTemp));
-}
-*/
 
 void getSoilPercent()
 {
@@ -485,35 +422,20 @@ void WiFiEvent(WiFiEvent_t event)
   {
   case SYSTEM_EVENT_STA_GOT_IP:
   {
-    // When connected set
     Serial.print("WiFi connected! IP address: ");
     String ip = IpAddress2String(WiFi.localIP());
     Serial.println(ip);
     StringToCharArray(ip, cip);
-    // initializes the UDP state
-    // This initializes the transfer buffer
     udp.begin(WiFi.localIP(), localport);
     connected = true;
     reconnect = true;
   }
   break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
-    //Serial.println("WiFi lost connection");
     connected = false;
     break;
   }
 }
-
-/*int StringToCharArray(String str, char *s)
-{
-  int i;
-  for (i = 0; i < str.length(); i++)
-  {
-    *s++ = str.charAt(i);
-  }
-  *s++ = '\0';
-  return i;
-}*/
 
 void EEPROM_default()
 {
