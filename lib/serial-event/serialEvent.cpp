@@ -7,9 +7,9 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
     JsonObject &root = jsonBuffer.parseObject(json);
     if (!root.success())
     {
-        // Serial.println("parseObject() failed");
         Serial.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
         SerialBT.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"}\n");
+        jsonBuffer.clear();
         return "";
     }
     String cmd = root["cmd"];
@@ -213,7 +213,8 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
         else if (cmd.equals("getRtc"))
         {
             DateTime now = rtc.now();
-            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"tanggal\":%d-%d-%d,\"jam\":%d:%d:%d}\r\n", dev, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
+            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"tanggal\":\"%02d-%02d-%d\",\"jam\":\"%02d:%02d:%02d\"}\r\n", dev, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
+            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"tanggal\":\"%02d-%02d-%d\",\"jam\":\"%02d:%02d:%02d\"}\r\n", dev, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
         }
         else if (cmd.equals("rdLoop"))
         {
@@ -223,46 +224,62 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
             SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
         }
-        /*else if (cmd.equals("setRelay1"))
+        else if (cmd.equals("setRelay1"))
         {
-        //{"cmd":"setRelay2","devId":"A001","state":"1"}
-        int ot = (root["state"]) > 0 ? 1 : 0;
-        digitalWrite(pin::relay1, ot);
-        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
-        output &= 0xFE;
-        output |= ot;
-        EEPROM_putOutput(output);
+            //{"cmd":"setRelay2","devId":"A001","state":"1"}
+            if (param_limit::output_en > 0)
+            {
+                int ot = (root["state"]) > 0 ? 1 : 0;
+                digitalWrite(pin::relay1, ot);
+                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+            }
+            else
+            {
+                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+            }
         }
         else if (cmd.equals("setRelay2"))
         {
-        //{"cmd":"setRelay2","devId":"01","state":"0"}
-        int ot = (root["state"]) > 0 ? 1 : 0;
-        digitalWrite(pin::relay2, ot);
-        output &= 0xFD;
-        output |= (ot << 1);
-        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
-        EEPROM_putOutput(output);
+            //{"cmd":"setRelay2","devId":"01","state":"0"}
+            if (param_limit::output_en > 0)
+            {
+                int ot = (root["state"]) > 0 ? 1 : 0;
+                digitalWrite(pin::relay2, ot);
+                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+            }
+            else
+            {
+                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+            }
         }
         else if (cmd.equals("setRelay3"))
         {
-        //{"cmd":"setRelay3","devId":"01","state":"0"}
-        int ot = (root["state"]) > 0 ? 1 : 0;
-        digitalWrite(pin::relay3, ot);
-        output &= 0xFB;
-        output |= (ot << 2);
-        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
-        EEPROM_putOutput(output);
+            //{"cmd":"setRelay3","devId":"01","state":"0"}
+            if (param_limit::output_en > 0)
+            {
+                int ot = (root["state"]) > 0 ? 1 : 0;
+                digitalWrite(pin::relay3, ot);
+                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+            }
+            else
+            {
+                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+            }
         }
         else if (cmd.equals("setRelay4"))
         {
-        //{"cmd":"setRelay4","devId":"01","state":"0"}
-        int ot = (root["state"]) > 0 ? 1 : 0;
-        digitalWrite(pin::relay4, ot);
-        output &= 0xF7;
-        output |= (ot << 3);
-        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
-        EEPROM_putOutput(output);
-        }*/
+            //{"cmd":"setRelay4","devId":"01","state":"0"}
+            if (param_limit::output_en > 0)
+            {
+                int ot = (root["state"]) > 0 ? 1 : 0;
+                digitalWrite(pin::relay4, ot);
+                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+            }
+            else
+            {
+                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+            }
+        }
 
         else if (cmd.equals("getTimerParam"))
         {
@@ -274,6 +291,10 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             char tmr2_off[8];
             char tmr3_off[8];
             char tmr4_off[8];
+            Serial.println(param_timer::timer1_on);
+            Serial.println(param_timer::timer2_on);
+            Serial.println(param_timer::timer3_on);
+            Serial.println(param_timer::timer4_on);
             sprintf(tmr1_on, "%02d:%02d", param_timer::timer1_on / 60, param_timer::timer1_on % 60);
             sprintf(tmr2_on, "%02d:%02d", param_timer::timer2_on / 60, param_timer::timer2_on % 60);
             sprintf(tmr3_on, "%02d:%02d", param_timer::timer3_on / 60, param_timer::timer3_on % 60);
@@ -283,18 +304,18 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             sprintf(tmr3_off, "%02d:%02d", param_timer::timer3_off / 60, param_timer::timer3_off % 60);
             sprintf(tmr4_off, "%02d:%02d", param_timer::timer4_off / 60, param_timer::timer4_off % 60);
 
-            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
-                          "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
+            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":\"%s\",\"timer2_on\":\"%s\",\"timer3_on\":\"%s\",\"timer4_on\":\"%s\","
+                          "\"timer1_off\":\"%s\",\"timer2_off\":\"%s\",\"timer3_off\":\"%s\",\"timer4_off\":\"%s\"}\r\n",
                           devId, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
-            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
-                            "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
+            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":\"%s\",\"timer2_on\":\"%s\",\"timer3_on\":\"%s\",\"timer4_on\":\"%s\","
+                            "\"timer1_off\":\"%s\",\"timer2_off\":\"%s\",\"timer3_off\":\"%s\",\"timer4_off\":\"%s\"}\r\n",
                             devId, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
         }
         else if (cmd.equals("getTimerState"))
         {
-            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
+            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d}\r\n",
                           devId, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
-            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
+            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d}\r\n",
                             devId, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
         }
         else if (cmd.equals("getLimitParam"))
@@ -310,9 +331,9 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
         }
         else if (cmd.equals("getOutputEnable"))
         {
-            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"output_en\":%d,}\r\n",
+            Serial.printf("{\"Status\":0,\"devId\":\"%s\",\"output_en\":%d}\r\n",
                           devId, param_limit::output_en);
-            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"output_en\":%d,}\r\n",
+            SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"output_en\":%d}\r\n",
                             devId, param_limit::output_en);
         }
         else if (cmd.equals("forceReset"))

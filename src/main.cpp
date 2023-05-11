@@ -144,7 +144,7 @@ void setup()
   if (def != 0)
   {
     EEPROM_default();
-    EEPROM_putOutput(0);
+    // EEPROM_putOutput(0);
   }
 
   SerialBT.begin("green-house-bt"); // Bluetooth device name
@@ -751,7 +751,7 @@ void EEPROM_get()
   eeAddr = 612;
   param_limit::ph_off = EEPROM.readFloat(eeAddr);
   eeAddr = 614;
-  param_limit::output_en = EEPROM.readFloat(eeAddr);
+  param_limit::output_en = EEPROM.readInt(eeAddr);
 }
 
 int EEPROM_getOutput()
