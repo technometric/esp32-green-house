@@ -28,6 +28,7 @@ String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, 
         udp.beginPacket(udp.remoteIP(), remote_port);
         udp.printf("{\"Status\":1,\"message\":\"JSON pharsing error\"");
         udp.endPacket();
+        jsonBuffer.clear();
         return "";
     }
     String cmd = root["cmd"];
@@ -186,7 +187,7 @@ String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, 
         {
             DateTime now = rtc.now();
             udp.beginPacket(udp.remoteIP(), remote_port);
-            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"tanggal\":\"%02d-%02d-%4d\",\"jam\":\"%02d:%02d:%02d\"}\r\n", devId, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
+            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"tanggal\":\"%02d-%02d-%d\",\"jam\":\"%02d:%02d:%02d\"}\r\n", devId, now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());
             udp.endPacket();
         }
         else if (cmd.equals("rdLoop"))
@@ -269,15 +270,15 @@ String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, 
             sprintf(tmr3_off, "%02d:%02d", param_timer::timer3_off / 60, param_timer::timer3_off % 60);
             sprintf(tmr4_off, "%02d:%02d", param_timer::timer4_off / 60, param_timer::timer4_off % 60);
             udp.beginPacket(udp.remoteIP(), remote_port);
-            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":%s,\"timer2_on\":%s,\"timer3_on\":%s,\"timer4_on\":%s,"
-                       "\"timer1_off\":%s,\"timer2_off\":%s,\"timer3_off\":%s,\"timer4_off\":%s}\r\n",
+            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_on\":\"%s\",\"timer2_on\":\"%s\",\"timer3_on\":\"%s\",\"timer4_on\":\"%s\","
+                       "\"timer1_off\":\"%s\",\"timer2_off\":\"%s\",\"timer3_off\":\"%s\",\"timer4_off\":\"%s\"}\r\n",
                        devId, tmr1_on, tmr2_on, tmr3_on, tmr4_on, tmr1_off, tmr2_off, tmr3_off, tmr4_off);
             udp.endPacket();
         }
         else if (cmd.equals("getTimerState"))
         {
             udp.beginPacket(udp.remoteIP(), remote_port);
-            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d,}\r\n",
+            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"timer1_en\":%d,\"timer2_en\":%d,\"timer3_en\":%d,\"timer4_en\":%d}\r\n",
                        devId, param_limit::timer1_en, param_limit::timer2_en, param_limit::timer3_en, param_limit::timer4_en);
             udp.endPacket();
         }
@@ -293,7 +294,7 @@ String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, 
         else if (cmd.equals("getOutputEnable"))
         {
             udp.beginPacket(udp.remoteIP(), remote_port);
-            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"output_en\":%d,}\r\n",
+            udp.printf("{\"Status\":0,\"devId\":\"%s\",\"output_en\":%d}\r\n",
                        devId, param_limit::output_en);
             udp.endPacket();
         }

@@ -291,10 +291,6 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             char tmr2_off[8];
             char tmr3_off[8];
             char tmr4_off[8];
-            Serial.println(param_timer::timer1_on);
-            Serial.println(param_timer::timer2_on);
-            Serial.println(param_timer::timer3_on);
-            Serial.println(param_timer::timer4_on);
             sprintf(tmr1_on, "%02d:%02d", param_timer::timer1_on / 60, param_timer::timer1_on % 60);
             sprintf(tmr2_on, "%02d:%02d", param_timer::timer2_on / 60, param_timer::timer2_on % 60);
             sprintf(tmr3_on, "%02d:%02d", param_timer::timer3_on / 60, param_timer::timer3_on % 60);

@@ -17,7 +17,7 @@ namespace param_limit
     extern int temp_on, temp_off;
     extern int soil_on, soil_off;
     extern float ec_on, ec_off;
-    extern float tds_on, tds_off;
+    extern int tds_on, tds_off;
     extern float ph_on, ph_off;
 }
 namespace param_timer

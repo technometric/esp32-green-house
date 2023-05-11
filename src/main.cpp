@@ -32,7 +32,7 @@ namespace param_limit
   int temp_on = 25, temp_off = 30;
   int soil_on = 20, soil_off = 50;
   float ec_on = 1.0, ec_off = 2.0;
-  float tds_on = 100, tds_off = 200;
+  int tds_on = 100, tds_off = 200;
   float ph_on = 6.0, ph_off = 7.0;
 }
 namespace param_timer
@@ -140,8 +140,8 @@ void setup()
     delay(1000);
     ESP.restart();
   }
-  EEPROM_get();
-  if (def != 0)
+  // EEPROM_get();
+  // if (def != 0)
   {
     EEPROM_default();
     // EEPROM_putOutput(0);
@@ -218,8 +218,6 @@ void loop()
       Serial.print(remoteIp);
       Serial.print(", port ");
       Serial.println(udp.remotePort());
-
-      // read the packet into packetBufffer
       int len = udp.read(packetBuffer, 512);
       if (len > 0)
       {
@@ -228,12 +226,8 @@ void loop()
       parseJsonUdpIn(devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
     }
   }
-
+  ///*
   getSoilPercent();
-  // int moisturePercentage = (100.00 - ((analogRead(pin::soil_sensor) / 1023.00) * 100.00));
-  // sensor::smpercent = map(analogRead(pin::soil_sensor), 0, 4095, 100, 0);
-  // Serial.print("Kelembaban Tanah: ");
-  // Serial.println(moisturePercentage);
 
   int measurings = 0;
   for (int i = 0; i < samples; i++)
@@ -244,23 +238,23 @@ void loop()
 
   float voltage = (3.3 / adc_resolution) * (measurings / samples);
   sensor::ph = ph(voltage);
-  // Serial.print("pH: ");
-  // Serial.println(ph(voltage));
   readTdsQuick();
   sensor::kelembaban = dht.readHumidity();
-  // Read temperature as Celsius (the default)
   sensor::suhu_udara = dht.readTemperature();
-
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(sensor::kelembaban) || isnan(sensor::suhu_udara))
+  if (isnan(sensor::kelembaban))
   {
-    Serial.println(F("Failed to read from DHT sensor!"));
-    return;
+    sensor::kelembaban = 0;
+  }
+
+  if (isnan(sensor::suhu_udara))
+  {
+    sensor::suhu_udara = 0;
   }
 
   DateTime now = rtc.now();
 
   timer_now = (now.hour() * 60) + now.minute();
+  //*/
   if (param_limit::output_en == 1)
   {
     if (param_limit::timer1_en == 1)
@@ -561,36 +555,36 @@ void EEPROM_default()
   eeAddr = 586;
   EEPROM.writeInt(eeAddr, param_limit::timer1_en);
 
-  eeAddr = 588;
+  eeAddr = 590;
   EEPROM.writeInt(eeAddr, param_limit::timer2_en);
 
-  eeAddr = 590;
+  eeAddr = 594;
   EEPROM.writeInt(eeAddr, param_limit::timer3_en);
 
-  eeAddr = 592;
+  eeAddr = 598;
   EEPROM.writeInt(eeAddr, param_limit::timer4_en);
 
-  eeAddr = 594;
-  EEPROM.writeInt(eeAddr, param_limit::temp_on);
-  eeAddr = 596;
-  EEPROM.writeInt(eeAddr, param_limit::temp_off);
-  eeAddr = 598;
-  EEPROM.writeInt(eeAddr, param_limit::soil_on);
-  eeAddr = 600;
-  EEPROM.writeInt(eeAddr, param_limit::soil_off);
   eeAddr = 602;
-  EEPROM.writeFloat(eeAddr, param_limit::ec_on);
-  eeAddr = 604;
-  EEPROM.writeFloat(eeAddr, param_limit::ec_off);
+  EEPROM.writeInt(eeAddr, param_limit::temp_on);
   eeAddr = 606;
-  EEPROM.writeInt(eeAddr, param_limit::tds_on);
-  eeAddr = 608;
-  EEPROM.writeInt(eeAddr, param_limit::tds_off);
+  EEPROM.writeInt(eeAddr, param_limit::temp_off);
   eeAddr = 610;
-  EEPROM.writeFloat(eeAddr, param_limit::ph_on);
-  eeAddr = 612;
-  EEPROM.writeFloat(eeAddr, param_limit::ph_off);
+  EEPROM.writeInt(eeAddr, param_limit::soil_on);
   eeAddr = 614;
+  EEPROM.writeInt(eeAddr, param_limit::soil_off);
+  eeAddr = 618;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_on);
+  eeAddr = 626;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_off);
+  eeAddr = 634;
+  EEPROM.writeInt(eeAddr, param_limit::tds_on);
+  eeAddr = 638;
+  EEPROM.writeInt(eeAddr, param_limit::tds_off);
+  eeAddr = 642;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_on);
+  eeAddr = 650;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_off);
+  eeAddr = 658;
   EEPROM.writeInt(eeAddr, param_limit::output_en);
   EEPROM.commit();
 }
@@ -640,36 +634,36 @@ void EEPROM_put(String dev)
   eeAddr = 586;
   EEPROM.writeInt(eeAddr, param_limit::timer1_en);
 
-  eeAddr = 588;
+  eeAddr = 590;
   EEPROM.writeInt(eeAddr, param_limit::timer2_en);
 
-  eeAddr = 590;
+  eeAddr = 594;
   EEPROM.writeInt(eeAddr, param_limit::timer3_en);
 
-  eeAddr = 592;
+  eeAddr = 598;
   EEPROM.writeInt(eeAddr, param_limit::timer4_en);
 
-  eeAddr = 594;
-  EEPROM.writeInt(eeAddr, param_limit::temp_on);
-  eeAddr = 596;
-  EEPROM.writeInt(eeAddr, param_limit::temp_off);
-  eeAddr = 598;
-  EEPROM.writeInt(eeAddr, param_limit::soil_on);
-  eeAddr = 600;
-  EEPROM.writeInt(eeAddr, param_limit::soil_off);
   eeAddr = 602;
-  EEPROM.writeFloat(eeAddr, param_limit::ec_on);
-  eeAddr = 604;
-  EEPROM.writeFloat(eeAddr, param_limit::ec_off);
+  EEPROM.writeInt(eeAddr, param_limit::temp_on);
   eeAddr = 606;
-  EEPROM.writeInt(eeAddr, param_limit::tds_on);
-  eeAddr = 608;
-  EEPROM.writeInt(eeAddr, param_limit::tds_off);
+  EEPROM.writeInt(eeAddr, param_limit::temp_off);
   eeAddr = 610;
-  EEPROM.writeFloat(eeAddr, param_limit::ph_on);
-  eeAddr = 612;
-  EEPROM.writeFloat(eeAddr, param_limit::ph_off);
+  EEPROM.writeInt(eeAddr, param_limit::soil_on);
   eeAddr = 614;
+  EEPROM.writeInt(eeAddr, param_limit::soil_off);
+  eeAddr = 618;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_on);
+  eeAddr = 626;
+  EEPROM.writeFloat(eeAddr, param_limit::ec_off);
+  eeAddr = 634;
+  EEPROM.writeInt(eeAddr, param_limit::tds_on);
+  eeAddr = 638;
+  EEPROM.writeInt(eeAddr, param_limit::tds_off);
+  eeAddr = 642;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_on);
+  eeAddr = 650;
+  EEPROM.writeFloat(eeAddr, param_limit::ph_off);
+  eeAddr = 658;
   EEPROM.writeInt(eeAddr, param_limit::output_en);
   EEPROM.commit();
 }
@@ -721,36 +715,36 @@ void EEPROM_get()
   eeAddr = 586;
   param_limit::timer1_en = EEPROM.readInt(eeAddr);
 
-  eeAddr = 588;
+  eeAddr = 590;
   param_limit::timer2_en = EEPROM.readInt(eeAddr);
 
-  eeAddr = 590;
+  eeAddr = 594;
   param_limit::timer3_en = EEPROM.readInt(eeAddr);
 
-  eeAddr = 592;
+  eeAddr = 598;
   param_limit::timer4_en = EEPROM.readInt(eeAddr);
 
-  eeAddr = 594;
-  param_limit::temp_on = EEPROM.readInt(eeAddr);
-  eeAddr = 596;
-  param_limit::temp_off = EEPROM.readInt(eeAddr);
-  eeAddr = 598;
-  param_limit::soil_on = EEPROM.readInt(eeAddr);
-  eeAddr = 600;
-  param_limit::soil_off = EEPROM.readInt(eeAddr);
   eeAddr = 602;
-  param_limit::ec_on = EEPROM.readFloat(eeAddr);
-  eeAddr = 604;
-  param_limit::ec_off = EEPROM.readFloat(eeAddr);
+  param_limit::temp_on = EEPROM.readInt(eeAddr);
   eeAddr = 606;
-  param_limit::tds_on = EEPROM.readInt(eeAddr);
-  eeAddr = 608;
-  param_limit::tds_off = EEPROM.readInt(eeAddr);
+  param_limit::temp_off = EEPROM.readInt(eeAddr);
   eeAddr = 610;
-  param_limit::ph_on = EEPROM.readFloat(eeAddr);
-  eeAddr = 612;
-  param_limit::ph_off = EEPROM.readFloat(eeAddr);
+  param_limit::soil_on = EEPROM.readInt(eeAddr);
   eeAddr = 614;
+  param_limit::soil_off = EEPROM.readInt(eeAddr);
+  eeAddr = 618;
+  param_limit::ec_on = EEPROM.readFloat(eeAddr);
+  eeAddr = 626;
+  param_limit::ec_off = EEPROM.readFloat(eeAddr);
+  eeAddr = 634;
+  param_limit::tds_on = EEPROM.readInt(eeAddr);
+  eeAddr = 638;
+  param_limit::tds_off = EEPROM.readInt(eeAddr);
+  eeAddr = 642;
+  param_limit::ph_on = EEPROM.readFloat(eeAddr);
+  eeAddr = 650;
+  param_limit::ph_off = EEPROM.readFloat(eeAddr);
+  eeAddr = 658;
   param_limit::output_en = EEPROM.readInt(eeAddr);
 }
 
