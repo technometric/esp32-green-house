@@ -145,6 +145,56 @@ String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, 
             udp.endPacket();
             delay(1000);
         }
+        else if (cmd.equals("setLimitTemp"))
+        {
+            param_limit::temp_on = root["on"];
+            param_limit::temp_off = root["off"];
+            EEPROM_put("");
+            udp.beginPacket(udp.remoteIP(), remote_port);
+            udp.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+            udp.endPacket();
+            delay(1000);
+        }
+        else if (cmd.equals("setLimitSoil"))
+        {
+            param_limit::soil_on = root["on"];
+            param_limit::soil_off = root["off"];
+            EEPROM_put("");
+            udp.beginPacket(udp.remoteIP(), remote_port);
+            udp.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+            udp.endPacket();
+            delay(1000);
+        }
+        else if (cmd.equals("setLimitPH"))
+        {
+            param_limit::ph_on = root["on"];
+            param_limit::ph_off = root["off"];
+            EEPROM_put("");
+            udp.beginPacket(udp.remoteIP(), remote_port);
+            udp.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+            udp.endPacket();
+            delay(1000);
+        }
+        else if (cmd.equals("setLimitTDS"))
+        {
+            param_limit::tds_on = root["on"];
+            param_limit::tds_off = root["off"];
+            EEPROM_put("");
+            udp.beginPacket(udp.remoteIP(), remote_port);
+            udp.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+            udp.endPacket();
+            delay(1000);
+        }
+        else if (cmd.equals("setLimitEC"))
+        {
+            param_limit::ec_on = root["on"];
+            param_limit::ec_off = root["off"];
+            EEPROM_put("");
+            udp.beginPacket(udp.remoteIP(), remote_port);
+            udp.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+            udp.endPacket();
+            delay(1000);
+        }
         else if (cmd.equals("setParamLimit"))
         {
             param_limit::temp_on = root["temp_on"];
