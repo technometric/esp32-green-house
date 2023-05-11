@@ -140,8 +140,8 @@ void setup()
     delay(1000);
     ESP.restart();
   }
-  // EEPROM_get();
-  // if (def != 0)
+  EEPROM_get();
+  if (def != 0)
   {
     EEPROM_default();
     // EEPROM_putOutput(0);
