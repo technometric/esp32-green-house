@@ -17,7 +17,7 @@ void copy_buff(const char *src, char *dest)
         *dest++ = *src++;
 }
 
-String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put)
+String parseJsonUdpIn(char *devId, bool connected, int *rdloop, int remote_port, const char *jsonStr, std::function<void(String)> EEPROM_put)
 {
     char js[128];
     copy_buff(jsonStr, js);
@@ -244,7 +244,7 @@ String parseJsonUdpIn(char *devId, bool connected, int rdloop, int remote_port, 
         {
             //{"cmd":"rdLoop","devId":"01","delay":1}
             int dly = root["delay"];
-            rdloop = dly;
+            *rdloop = dly;
             udp.beginPacket(udp.remoteIP(), remote_port);
             udp.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", devId);
             udp.endPacket();

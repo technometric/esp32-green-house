@@ -223,7 +223,7 @@ void loop()
       {
         packetBuffer[len] = 0;
       }
-      parseJsonUdpIn(devId, connected, rdloop, remote_port, packetBuffer, EEPROM_put);
+      parseJsonUdpIn(devId, connected, &rdloop, remote_port, packetBuffer, EEPROM_put);
     }
   }
   ///*
