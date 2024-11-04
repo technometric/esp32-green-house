@@ -11,6 +11,7 @@
 #include <BluetoothSerial.h>
 #include "udpEvent.h"
 #include "serialEvent.h"
+
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
@@ -54,9 +55,9 @@ namespace pin
   int dht21_sensor = 19;
   int one_wire_bus = 17;
   int led_builtin = 2;
-  int relay1 = 16;
-  int relay2 = 4;
-  int relay3 = 5;
+  int relay1 = 5;
+  int relay2 = 16;
+  int relay3 = 4;
   int relay4 = 15;
 }
 
@@ -189,9 +190,10 @@ int samples = 10;
 float adc_resolution = 4095.0;
 int timer_now = 0;
 int dly = 0;
+
 void loop()
 {
-  if (!connected)
+  /*if (!connected)
   {
     if (reconnect)
     {
@@ -250,6 +252,7 @@ void loop()
   DateTime now = rtc.now();
 
   timer_now = (now.hour() * 60) + now.minute();
+
   if (param_limit::output_en == 1)
   {
     if (param_limit::timer1_en == 1)
@@ -352,7 +355,12 @@ void loop()
         SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
       }
     }
-  }
+  }*/
+
+  DateTime now = rtc.now();
+  Serial.println(now.hour());
+  Serial.println(now.minute());
+  Serial.println(now.second());
 
   if (stringComplete)
   {
@@ -361,6 +369,7 @@ void loop()
     inputString = "";
     stringComplete = false;
   }
+
   while (SerialBT.available())
   {
     char inChar = (char)SerialBT.read();
