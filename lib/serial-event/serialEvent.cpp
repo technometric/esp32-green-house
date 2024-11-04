@@ -54,7 +54,7 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
         remote_port = root["portOut"];
         EEPROM_put(dev);
         delay(5000);
-        Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
+        SerialBT.printf("{\"Status\":0,\"devId\":\"%s\"}\n", devId);
     }
     else if (cmd.equals("getConfig"))
     {
@@ -276,11 +276,11 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             {
                 int ot = (root["state"]) > 0 ? 1 : 0;
                 digitalWrite(pin::relay1, ot);
-                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+                SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"State\":%d}\r\n", dev, digitalRead(pin::relay1));
             }
             else
             {
-                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+                SerialBT.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
             }
         }
         else if (cmd.equals("setRelay2"))
@@ -290,11 +290,11 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             {
                 int ot = (root["state"]) > 0 ? 1 : 0;
                 digitalWrite(pin::relay2, ot);
-                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+                SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"State\":%d}\r\n", dev, digitalRead(pin::relay2));
             }
             else
             {
-                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+                SerialBT.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
             }
         }
         else if (cmd.equals("setRelay3"))
@@ -304,11 +304,11 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             {
                 int ot = (root["state"]) > 0 ? 1 : 0;
                 digitalWrite(pin::relay3, ot);
-                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+                SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"State\":%d}\r\n", dev, digitalRead(pin::relay3));
             }
             else
             {
-                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+                SerialBT.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
             }
         }
         else if (cmd.equals("setRelay4"))
@@ -318,11 +318,11 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
             {
                 int ot = (root["state"]) > 0 ? 1 : 0;
                 digitalWrite(pin::relay4, ot);
-                Serial.printf("{\"Status\":0,\"devId\":\"%s\"}\r\n", dev);
+                SerialBT.printf("{\"Status\":0,\"devId\":\"%s\",\"State\":%d}\r\n", dev, digitalRead(pin::relay4));
             }
             else
             {
-                Serial.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
+                SerialBT.printf("{\"Status\":1,\"message\":\"Output disable\"}\r\n");
             }
         }
 
@@ -379,7 +379,7 @@ String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function
         }
         else if (cmd.equals("forceReset"))
         {
-            Serial.printf("{\"Status\":\"Device force reset\",\"devId\":\"%s\"}\r\n", dev);
+            SerialBT.printf("{\"Status\":\"Device force reset\",\"devId\":\"%s\"}\r\n", dev);
             delay(1000);
             ESP.restart();
         }
