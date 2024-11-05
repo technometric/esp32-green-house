@@ -54,9 +54,9 @@ namespace pin
   int dht21_sensor = 19;
   int one_wire_bus = 17;
   int led_builtin = 2;
-  int relay1 = 16;
-  int relay2 = 4;
-  int relay3 = 5;
+  int relay1 = 5;
+  int relay2 = 16;
+  int relay3 = 4;
   int relay4 = 15;
 }
 
@@ -396,52 +396,13 @@ void loop()
 
 void readTdsQuick()
 {
-  // dallasTemp.requestTemperatures();
   sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
   float rawEc = (analogRead(pin::tds_sensor) * device::aref) / adc_resolution;
-  // Serial.print("rawEC: ");
-  // Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
   sensor::ec = (rawEc / tempCoefficient) * sensor::ecCalibration;
   sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5;
-  // tdsValue=(133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5;
-  // Serial.print("EC: ");
-  // Serial.println(sensor::ec);
-  // Serial.print("TDS: ");
-  // Serial.println(sensor::tds);
+
 }
-
-/*
-void readTdsQuick() {
-  dallasTemperature.requestTemperatures();
-  sensor::waterTemp = dallasTemperature.getTempCByIndex(0);
-  float rawEc = analogRead(pin::tds_sensor) * device::aref / 1024.0; // read the analog value more stable by the median filtering algorithm, and convert to voltage value
-  float temperatureCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0); // temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-  sensor::ec = (rawEc / temperatureCoefficient) * sensor::ecCalibration; // temperature and calibration compensation
-  sensor::tds = (133.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5; //convert voltage value to tds value
-  Serial.print(F("TDS:")); Serial.println(sensor::tds);
-  Serial.print(F("EC:")); Serial.println(sensor::ec, 2);
-  Serial.print(F("Temperature:")); Serial.println(sensor::waterTemp,2);
-
- display.clearDisplay();
-  display.setCursor(10,0);
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
- display.print("TDS:"+String(sensor::tds));
-    display.setCursor(10,20);
-  display.setTextSize(2);
- display.print("EC:"+String(sensor::ec, 2));
-   display.setCursor(10,45);
-  display.setTextSize(2);
- display.print("T:"+String(sensor::waterTemp,2));
-  display.display();
-    Blynk.virtualWrite(V0,(sensor::tds));
-
-   Blynk.virtualWrite(V1,(sensor::ec));
-
-     Blynk.virtualWrite(V2,(sensor::waterTemp));
-}
-*/
 
 void getSoilPercent()
 {
@@ -490,16 +451,6 @@ void WiFiEvent(WiFiEvent_t event)
   }
 }
 
-/*int StringToCharArray(String str, char *s)
-{
-  int i;
-  for (i = 0; i < str.length(); i++)
-  {
-    *s++ = str.charAt(i);
-  }
-  *s++ = '\0';
-  return i;
-}*/
 
 void EEPROM_default()
 {
@@ -769,43 +720,7 @@ void EEPROM_getJson(char *json)
   eeAddr = 128;
   EEPROM.readString(eeAddr, json, 128);
 }
-/*
-void serialEvent()
-{
-  while (Serial.available())
-  {
-    // get the new byte:
-    char inChar = (char)Serial.read();
-    // Serial.print(inChar);
-    //  add it to the inputString:
-    inputString += inChar;
-    // if the incoming character is a newline, set a flag so the main loop can
-    // do something about it:
-    if (inChar == '\r')
-    {
-      stringComplete = true;
-    }
-  }
-}
 
-void serialBTEvent()
-{
-  while (SerialBT.available())
-  {
-    // get the new byte:
-    char inChar = (char)SerialBT.read();
-    // Serial.print(inChar);
-    //  add it to the inputString:
-    inputString += inChar;
-    // if the incoming character is a newline, set a flag so the main loop can
-    // do something about it:
-    if (inChar == '\r')
-    {
-      stringComplete = true;
-    }
-  }
-}
-*/
 String IpAddress2String(const IPAddress &ipAddress)
 {
   return String(ipAddress[0]) + String(".") +
