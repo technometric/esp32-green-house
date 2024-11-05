@@ -58,6 +58,7 @@ namespace sensor
     extern float kelembaban;
     extern float ph;
 }
+//extern int rdloop;
 extern String dev_id;
 extern int localport;
 extern int remote_port;
@@ -69,6 +70,6 @@ extern char cpswd[50]; // = "12345678";
 extern char json[128];
 extern char cip[30];
 extern RTClib rtc;
-String parseJsonSerialIn(char *devId, int *rdloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get, std::function<void(char *, char *)> connectToWiFi);
+String parseJsonSerialIn(char *devId, int *readloop, String jsonStr, std::function<void(String)> EEPROM_put, std::function<void(void)> EEPROM_get, std::function<void(char *, char *)> connectToWiFi);
 int StringToCharArray(String, char *);
 #endif

@@ -257,7 +257,7 @@ String parseJsonUdpIn(char *devId, bool connected, int *rdloop, int remote_port,
             int ot4 = digitalRead(pin::relay4);
             udp.beginPacket(udp.remoteIP(), remote_port);
             udp.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
-            rdloop = 0;
+            *rdloop = 0;
             udp.endPacket();
         }
         /*else if (cmd.equals("setRelay1"))
