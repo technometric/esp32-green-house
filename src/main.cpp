@@ -11,12 +11,16 @@
 #include <BluetoothSerial.h>
 #include "udpEvent.h"
 #include "serialEvent.h"
+//#include "GravityTDS.h"
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
 BluetoothSerial SerialBT;
+
+#define TdsSensorPin 35
+//GravityTDS gravityTds;
 
 namespace device
 {
@@ -63,10 +67,11 @@ namespace pin
 
 namespace sensor
 {
+  float kValue = 0.7; // from TDS Calibration 1382ppm solution
   float ec;
   int tds;
   float waterTemp;
-  float ecCalibration;
+  float ecCalibration = 1.0; 
   int smvalue;
   int smpercent;
   float suhu_udara;
@@ -74,8 +79,9 @@ namespace sensor
   float ph;
 }
 
-OneWire oneWire(pin::one_wire_bus);
-DallasTemperature dallasTemp(&oneWire);
+float adc_resolution = 4096.0;
+//OneWire oneWire(pin::one_wire_bus);
+//DallasTemperature dallasTemp(&oneWire);
 DHT dht(pin::dht21_sensor, DHT21);
 RTClib rtc;
 DS3231 t;
@@ -129,8 +135,27 @@ String parseJsonSerialBTIn(String jsonStr);
 
 void setup()
 {
+
+  digitalWrite(pin::relay1, HIGH);
+  digitalWrite(pin::relay2, HIGH);
+  digitalWrite(pin::relay3, HIGH);
+  digitalWrite(pin::relay4, HIGH);
+  
+  pinMode(pin::relay1, OUTPUT);
+  pinMode(pin::relay2, OUTPUT);
+  pinMode(pin::relay3, OUTPUT);
+  pinMode(pin::relay4, OUTPUT);
+  delay(200);
+  digitalWrite(pin::relay1, LOW);
+  digitalWrite(pin::relay2, LOW);
+  digitalWrite(pin::relay3, LOW);
+  digitalWrite(pin::relay4, LOW);
   // put your setup code here, to run once:
   Serial.begin(115200);
+  //gravityTds.setPin(pin::tds_sensor);
+  //gravityTds.setAref(device::aref);  //reference voltage on ADC, default 5.0V on Arduino UNO
+  //gravityTds.setAdcRange(adc_resolution);  //1024 for 10bit ADC;4096 for 12bit ADC
+  //gravityTds.begin();  //initialization
   Wire.begin();
   dht.begin();
 
@@ -155,15 +180,7 @@ void setup()
   StringToCharArray(pswd, cpswd);
 
   pinMode(pin::led_builtin, OUTPUT);
-  pinMode(pin::relay1, OUTPUT);
-  pinMode(pin::relay2, OUTPUT);
-  pinMode(pin::relay3, OUTPUT);
-  pinMode(pin::relay4, OUTPUT);
-
-  digitalWrite(pin::relay1, LOW);
-  digitalWrite(pin::relay2, LOW);
-  digitalWrite(pin::relay3, LOW);
-  digitalWrite(pin::relay4, LOW);
+  
   Serial.println(dev_id);
   Serial.println(localport);
   Serial.println(remote_port);
@@ -187,11 +204,17 @@ float ph(float voltage)
 }
 
 int samples = 10;
-float adc_resolution = 4095.0;
 int timer_now = 0;
 int dly = 0;
+float temperature = 25,tdsValue = 0;
 void loop()
 {
+  //gravityTds.setTemperature(temperature);  // set the temperature and execute temperature compensation
+  //gravityTds.update();  //sample and calculate 
+  //tdsValue = gravityTds.getTdsValue();  // then get the value
+  //Serial.print(tdsValue,0);
+  //Serial.println("ppm");
+  
   if (!connected)
   {
     if (reconnect)
@@ -228,7 +251,7 @@ void loop()
     }
   }
   ///*
-  getSoilPercent();
+  //getSoilPercent();
 
   int measurings = 0;
   for (int i = 0; i < samples; i++)
@@ -242,6 +265,11 @@ void loop()
   readTdsQuick();
   sensor::kelembaban = dht.readHumidity();
   sensor::suhu_udara = dht.readTemperature();
+   //* 
+  //Serial.println(voltage);
+  //Serial.print("pH: ");
+  //Serial.println(param_limit::output_en);
+  //Serial.println(sensor::ph); //*/
   if (isnan(sensor::kelembaban))
   {
     sensor::kelembaban = 0;
@@ -252,11 +280,6 @@ void loop()
     sensor::suhu_udara = 0;
   }
   
-  /* Serial.print("output enable: ");
-  Serial.println(param_limit::output_en);
-  Serial.print("rdLoop: ");
-  Serial.println(rdloop); */
-
   DateTime now = rtc.now();
 
   timer_now = (now.hour() * 60) + now.minute();
@@ -364,6 +387,7 @@ void loop()
         udp.endPacket();
       }
       SerialBT.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
+      Serial.printf("{\"Status\":0,\"device_id\":\"%s\",\"Data\":{\"ph\":%.2f,\"soil\":%d,\"tds\":%d,\"ec\":%.2f,\"temp\":%.2f,\"ot1\":%d,\"ot2\":%d,\"ot3\":%d,\"ot4\":%d}}", devId, node, sensor::ph, sensor::smpercent, sensor::tds, sensor::ec, sensor::suhu_udara, ot1, ot2, ot3, ot4);
     }
   }
 
@@ -406,10 +430,12 @@ void readTdsQuick()
 {
   sensor::waterTemp = 25.0; // dallasTemp.getTempCByIndex(0);
   float rawEc = (analogRead(pin::tds_sensor) * device::aref) / adc_resolution;
+  //Serial.println(rawEc);
   float tempCoefficient = 1.0 + 0.02 * (sensor::waterTemp - 25.0);
   sensor::ec = (rawEc / tempCoefficient) * sensor::ecCalibration;
-  sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * 0.5;
-
+  sensor::tds = (113.42 * pow(sensor::ec, 3) - 255.86 * sensor::ec * sensor::ec + 857.39 * sensor::ec) * sensor::kValue;
+  //Serial.print(sensor::tds);
+  //Serial.println("ppm");
 }
 
 void getSoilPercent()
@@ -547,6 +573,7 @@ void EEPROM_default()
   EEPROM.writeInt(eeAddr, param_limit::output_en);
   EEPROM.commit();
 }
+
 void EEPROM_put(String dev)
 {
 
@@ -646,7 +673,7 @@ void EEPROM_get()
 
   eeAddr = 78; // sizeof(ssid);
   pswd = EEPROM.readString(eeAddr);
-  /*
+
   eeAddr = 512;
   param_timer::timer1_on = EEPROM.readInt(eeAddr);
 
@@ -705,7 +732,6 @@ void EEPROM_get()
   param_limit::ph_off = EEPROM.readFloat(eeAddr);
   eeAddr = 658;
   param_limit::output_en = EEPROM.readInt(eeAddr);
-  */
 }
 
 int EEPROM_getOutput()
